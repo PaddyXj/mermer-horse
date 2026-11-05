@@ -1,0 +1,3093 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a12">
+<title>一起来拉磨</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a12;--txt:#f4f5fa;--dim:#8b8fa3;
+  --gold1:#ffe066;--gold2:#ff8a00;
+  --purple:#7c5cff;--cyan:#22d3ee;--pink:#ff6b9d;
+  --coin:#ffd93d;
+}
+html,body{min-height:100%}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:system-ui,-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  display:flex;justify-content:center;
+  padding:max(18px,env(safe-area-inset-top)) 14px 40px;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;transition:background .4s;
+}
+body.theme-struggle{--bg:#0d1220}
+body.theme-fish{--bg:#0a1a14}
+body.focus-mode::before,body.focus-mode::after{opacity:.15}
+body.focus-mode .coin-row,body.focus-mode .pet-row,
+body.focus-mode .tabs,body.focus-mode .panel,
+body.focus-mode .foot-actions,body.focus-mode #bgParticles{display:none !important}
+body.focus-mode #mainCard .mood{display:none}
+body::before,body::after{
+  content:'';position:fixed;border-radius:50%;filter:blur(80px);
+  pointer-events:none;z-index:0;
+}
+body::before{width:70vw;height:70vw;background:rgba(124,92,255,.45);top:-25vw;left:-25vw;animation:drift 18s ease-in-out infinite}
+body::after{width:65vw;height:65vw;background:rgba(34,211,238,.26);bottom:-25vw;right:-25vw;animation:drift 22s ease-in-out infinite reverse}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(4vw,-3vw)}}
+
+.app{width:100%;max-width:440px;position:relative;z-index:1}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:2px 6px 14px}
+.date{font-size:13px;color:var(--dim);letter-spacing:.02em}
+.top-actions{display:flex;gap:8px}
+.icon-btn{
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+  color:var(--txt);width:38px;height:38px;border-radius:13px;font-size:17px;
+  cursor:pointer;display:grid;place-items:center;transition:transform .15s;
+}
+.icon-btn:active{transform:scale(.9)}
+.icon-btn.buff-active{animation:buff-glow 1s ease infinite}
+@keyframes buff-glow{0%,100%{box-shadow:0 0 0 0 rgba(255,217,61,.0)}50%{box-shadow:0 0 16px 2px rgba(255,217,61,.5)}}
+
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.028));
+  border:1px solid rgba(255,255,255,.1);border-radius:26px;
+  padding:22px 20px 20px;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:0 20px 50px -20px rgba(0,0,0,.85);transition:box-shadow .5s;
+}
+.card.flash{box-shadow:0 0 0 2px rgba(255,224,102,.55),0 20px 60px -18px rgba(255,138,0,.55)}
+.pill{
+  display:inline-flex;align-items:center;gap:7px;font-size:12px;
+  padding:5px 12px;border-radius:999px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:#c9ccdb;
+}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;animation:pulse 1.6s infinite}
+.pill.off .dot{background:#8b8fa3;box-shadow:none;animation:none}
+.pill.done .dot{background:#ffe066;box-shadow:0 0 8px #ffe066;animation:none}
+.pill.ot .dot{background:#ff6b9d;box-shadow:0 0 8px #ff6b9d;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+
+.amount-wrap{display:flex;align-items:flex-end;gap:8px}
+.label{font-size:12px;color:var(--dim);margin:18px 0 2px;letter-spacing:.1em}
+.amount{
+  font-size:clamp(2.6rem,13.5vw,3.5rem);font-weight:800;line-height:1.05;
+  letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+  background:linear-gradient(100deg,var(--gold1),var(--gold2) 72%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 6px 18px rgba(255,138,0,.22));
+  cursor:pointer;user-select:none;transition:transform .08s;display:inline-block;
+}
+.amount:active{transform:scale(.97)}
+.amount.bounce{animation:bounce .35s ease}
+@keyframes bounce{0%,100%{transform:scale(1)}40%{transform:scale(1.08)}70%{transform:scale(.98)}}
+.amount .cur{font-size:.46em;font-weight:700;margin-right:2px;vertical-align:.22em}
+.peek-btn{
+  font-size:14px;cursor:pointer;padding:6px 9px;border-radius:10px;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  transition:all .2s;line-height:1;
+}
+.peek-btn:active{transform:scale(.9)}
+.peek-btn.peeking{background:rgba(255,217,61,.15);border-color:rgba(255,217,61,.4)}
+.per{font-size:12.5px;color:var(--dim);margin-top:8px}
+.per b{color:var(--gold1);font-variant-numeric:tabular-nums}
+
+.buff-banner{
+  margin-top:10px;padding:8px 12px;border-radius:12px;font-size:12px;
+  background:rgba(255,217,61,.1);border:1px solid rgba(255,217,61,.25);
+  color:#ffe066;display:flex;align-items:center;gap:8px;animation:fadein .4s;
+}
+.buff-banner.hidden{display:none}
+.buff-banner .b-icon{font-size:16px}
+.buff-banner .b-txt{flex:1}
+.buff-banner .b-left{font-size:11px;opacity:.8}
+@keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
+.coin-row{
+  display:flex;align-items:center;justify-content:flex-end;gap:6px;
+  margin-top:-4px;font-size:12px;color:var(--coin);cursor:pointer;
+}
+.coin-row .coin-ico{font-size:14px;animation:coin-spin 3s linear infinite;display:inline-block}
+@keyframes coin-spin{0%{transform:rotateY(0)}100%{transform:rotateY(360deg)}}
+
+.mood{
+  display:flex;align-items:center;gap:12px;margin:20px 0 18px;
+  padding:12px 14px;border-radius:16px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);
+}
+.mood .emo{font-size:30px;line-height:1;animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px) rotate(-7deg)}}
+.mood .txt{font-size:13.5px;color:#cfd2e0;line-height:1.45}
+
+.pet-row{
+  display:flex;align-items:center;gap:10px;margin:0 0 16px;
+  padding:10px 12px;border-radius:16px;
+  background:rgba(255,255,255,.035);border:1px dashed rgba(255,255,255,.08);
+  cursor:pointer;position:relative;overflow:hidden;
+}
+.pet-row:active{background:rgba(255,255,255,.06)}
+.pet-emoji{font-size:28px;line-height:1;transition:transform .3s}
+.pet-emoji.happy{animation:pet-happy .8s ease}
+.pet-emoji.sleepy{animation:pet-sleepy 2s ease-in-out infinite}
+@keyframes pet-happy{0%,100%{transform:rotate(0)}25%{transform:rotate(-15deg)}75%{transform:rotate(15deg)}}
+@keyframes pet-sleepy{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+.pet-info{flex:1;min-width:0}
+.pet-name{font-size:13px;color:#cfd2e0;font-weight:600}
+.pet-mood{font-size:11.5px;color:var(--dim);margin-top:2px}
+.pet-hp{height:4px;background:rgba(255,255,255,.08);border-radius:4px;margin-top:5px;overflow:hidden}
+.pet-hp-fill{height:100%;background:linear-gradient(90deg,#ff6b9d,#ffd93d,#6bcb77);width:50%;transition:width .5s}
+
+.bar{position:relative;height:18px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.55)}
+.bar-fill{height:100%;width:0;border-radius:999px;position:relative;overflow:hidden;background:linear-gradient(90deg,#7c5cff,#22d3ee 48%,#ffd93d);transition:width .3s linear}
+.bar-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.5) 50%,transparent 80%);background-size:220% 100%;animation:shine 2.2s linear infinite}
+@keyframes shine{from{background-position:220% 0}to{background-position:-120% 0}}
+.marks{position:absolute;inset:0;pointer-events:none}
+.marks i{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.22)}
+.bar-meta{display:flex;justify-content:space-between;margin-top:9px;font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+.bar-meta b{color:#e8eaf2;font-weight:600}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:18px}
+.stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:15px;padding:11px 8px;text-align:center}
+.stat .k{display:block;font-size:11px;color:var(--dim);margin-bottom:5px}
+.stat .v{display:block;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.ot-info{margin-top:12px;padding:10px 14px;border-radius:14px;font-size:12px;background:rgba(255,107,157,.1);border:1px solid rgba(255,107,157,.25);color:#ffb3cf;display:none}
+.ot-info.show{display:block}
+
+.tabs{display:flex;gap:6px;margin:18px 6px 0;padding:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:14px;flex-wrap:wrap}
+.tab{padding:9px 8px;border-radius:10px;font-size:12px;color:var(--dim);cursor:pointer;text-align:center;transition:all .2s;flex:1;min-width:56px}
+.tab.active{background:rgba(255,255,255,.09);color:var(--txt);font-weight:600}
+.panel{display:none;margin-top:12px;animation:fadein .3s}
+.panel.active{display:block}
+.panel-note{font-size:11.5px;color:var(--dim);margin-bottom:10px;line-height:1.5}
+
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.big-stat{padding:14px;border-radius:14px;text-align:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.big-stat .k{font-size:11px;color:var(--dim);margin-bottom:6px}
+.big-stat .v{font-size:18px;font-weight:800;color:var(--gold1);font-variant-numeric:tabular-nums}
+
+/* 热力图 */
+.heat-wrap{padding:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow-x:auto}
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,10px);gap:3px;min-width:100%;padding:2px}
+.heat .cell{width:10px;height:10px;border-radius:2px;background:rgba(255,255,255,.06);transition:background .2s;cursor:pointer}
+.heat .cell.l1{background:rgba(124,92,255,.35)}
+.heat .cell.l2{background:rgba(124,92,255,.55)}
+.heat .cell.l3{background:rgba(34,211,238,.55)}
+.heat .cell.l4{background:rgba(34,211,238,.75)}
+.heat .cell.l5{background:rgba(255,217,61,.8);box-shadow:0 0 6px rgba(255,217,61,.4)}
+.heat .cell.today{outline:1px solid rgba(255,217,61,.5)}
+.heat-labels{display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--dim)}
+.heat-legend{display:flex;justify-content:flex-end;gap:3px;align-items:center;margin-top:6px;font-size:10px;color:var(--dim)}
+.heat-legend .cell{width:8px;height:8px;border-radius:2px}
+
+/* 周报 */
+.report-card{padding:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;margin-bottom:10px;line-height:1.7;font-size:13px}
+.report-card .r-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.report-card .r-title{font-weight:700;color:var(--gold1);font-size:14px}
+.report-card .r-date{font-size:11px;color:var(--dim)}
+.report-card .r-row{display:flex;justify-content:space-between;margin:3px 0}
+.report-card .r-row span:first-child{color:var(--dim)}
+.report-card .r-highlight{color:#cfd2e0;margin-top:8px;font-size:12px;font-style:italic}
+.report-card .r-actions{display:flex;gap:8px;margin-top:10px}
+
+/* 股票 */
+.stock-wrap{padding:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;margin-bottom:10px}
+.stock-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.stock-name{font-size:13px;color:#cfd2e0;font-weight:600}
+.stock-price{font-size:18px;font-weight:800;color:var(--coin);font-variant-numeric:tabular-nums}
+.stock-price.up{color:#6bcb77}
+.stock-price.down{color:#ff8a8a}
+.stock-chg{font-size:11px;margin-left:4px}
+.stock-chg.up{color:#6bcb77}
+.stock-chg.down{color:#ff8a8a}
+.stock-chart{height:60px;position:relative;margin:6px 0 10px}
+.stock-chart svg{width:100%;height:100%}
+.stock-holdings{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:10px}
+.stock-actions{display:flex;gap:8px;margin-bottom:8px}
+.stock-btn{flex:1;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:var(--txt);font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
+.stock-btn.buy{border-color:rgba(107,203,119,.4);color:#6bcb77}
+.stock-btn.sell{border-color:rgba(255,138,138,.4);color:#ff8a8a}
+.stock-btn:active{transform:scale(.97)}
+.stock-btn:disabled{opacity:.35;cursor:not-allowed}
+.stock-real-row{display:flex;gap:6px;align-items:center;margin-bottom:8px}
+.stock-real-row input{flex:1;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--txt);font-family:inherit;font-size:12px;outline:none}
+.stock-real-row input:focus{border-color:var(--purple)}
+.stock-real-row button{padding:8px 12px;border-radius:10px;background:rgba(124,92,255,.2);border:1px solid rgba(124,92,255,.3);color:var(--txt);font-size:12px;cursor:pointer;font-family:inherit}
+.stock-status{font-size:10.5px;color:var(--dim);text-align:center;margin-top:4px}
+.stock-status.online{color:#6bcb77}
+.stock-status.offline{color:#ff8a8a}
+
+/* 备忘录 */
+.memo-list{margin-bottom:10px}
+.memo-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);margin-bottom:6px;font-size:12.5px}
+.memo-item span:first-child{font-size:15px}
+.memo-item .m-text{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.memo-item .m-time{color:var(--dim);font-size:11px}
+.memo-item .m-del{color:#ff8a8a;cursor:pointer;font-size:14px;padding:2px 6px;border-radius:6px;background:rgba(255,107,107,.1)}
+.memo-add{display:flex;gap:6px;margin-bottom:10px}
+.memo-add input{flex:1;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--txt);font-family:inherit;font-size:12px;outline:none}
+.memo-add input:focus{border-color:var(--purple)}
+.memo-add button{padding:9px 14px;border-radius:10px;background:rgba(124,92,255,.2);border:1px solid rgba(124,92,255,.3);color:var(--txt);font-size:12px;cursor:pointer;font-family:inherit}
+.memo-presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.memo-preset{padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);font-size:11px;color:var(--dim);cursor:pointer;transition:all .2s}
+.memo-preset:hover{color:#cfd2e0;border-color:rgba(255,255,255,.15)}
+
+/* 同事排行榜 */
+.rank-list{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:10px;margin-top:10px}
+.rank-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.06);font-size:12.5px}
+.rank-row:last-child{border-bottom:none}
+.rank-num{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--dim)}
+.rank-row.top1 .rank-num{background:linear-gradient(100deg,#ffe066,#ff8a00);color:#1a1a1a}
+.rank-row.top2 .rank-num{background:linear-gradient(100deg,#cfd2e0,#8b8fa3);color:#1a1a1a}
+.rank-row.top3 .rank-num{background:linear-gradient(100deg,#ffd93d,#b88765);color:#1a1a1a}
+.rank-name{flex:1}
+.rank-me .rank-name::after{content:'(你)';color:var(--gold1);margin-left:4px;font-size:11px}
+.rank-val{font-weight:700;color:var(--coin);font-variant-numeric:tabular-nums;font-size:12px}
+
+/* 成就 */
+.achievements{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ach{aspect-ratio:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;display:grid;place-items:center;font-size:20px;opacity:.35;position:relative;cursor:pointer;transition:all .2s}
+.ach.done{opacity:1;background:rgba(255,217,61,.12);border-color:rgba(255,217,61,.35);box-shadow:0 0 20px -8px rgba(255,217,61,.6)}
+.ach:active{transform:scale(.92)}
+
+.foot-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.mini-btn{flex:1 1 45%;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--dim);font-size:12px;cursor:pointer;transition:all .2s;font-family:inherit}
+.mini-btn:active{background:rgba(255,255,255,.09);color:var(--txt)}
+.mini-btn.active{border-color:rgba(255,217,61,.4);color:var(--coin);background:rgba(255,217,61,.1)}
+.foot{text-align:center;font-size:11.5px;color:#5b5f72;margin-top:16px}
+
+.coin-px{position:fixed;top:-10px;left:0;width:12px;height:12px;pointer-events:none;z-index:998;font-size:14px;animation:coin-fly 1s ease-out forwards}
+@keyframes coin-fly{0%{transform:translateY(0) scale(.5);opacity:1}60%{transform:translateY(-50px) scale(1.2);opacity:1}100%{transform:translateY(-120px) scale(.3);opacity:0}}
+.confetti{position:fixed;top:-18px;width:9px;height:13px;border-radius:2px;z-index:999;pointer-events:none;animation:fall 2.4s cubic-bezier(.3,.7,.5,1) forwards}
+@keyframes fall{0%{transform:translate3d(0,0,0) rotate(0);opacity:1}100%{transform:translate3d(var(--x),110vh,0) rotate(var(--r));opacity:0}}
+
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);max-width:340px;padding:14px 18px;border-radius:16px;z-index:300;background:rgba(20,20,30,.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);box-shadow:0 12px 40px -10px rgba(0,0,0,.8);display:flex;gap:10px;align-items:center;opacity:0;transition:all .4s cubic-bezier(.2,.7,.3,1)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast .t-emo{font-size:28px}
+.toast .t-body{flex:1;min-width:0}
+.toast .t-title{font-size:13px;font-weight:600;color:#fff}
+.toast .t-desc{font-size:11.5px;color:var(--dim);margin-top:2px;line-height:1.4}
+
+.modal{position:fixed;inset:0;background:rgba(5,5,12,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:18px}
+.modal[hidden]{display:none}
+.sheet{width:100%;max-width:380px;background:#15151f;border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:22px;max-height:88vh;overflow-y:auto;animation:pop .22s ease-out}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+.sheet h2{font-size:17px;margin-bottom:6px}
+.sheet p.tip{font-size:12px;color:var(--dim);margin-bottom:10px}
+.field{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.field label{font-size:13.5px;color:#cfd2e0}
+.field input[type=number],.field input[type=time],.field input[type=password]{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--txt);padding:8px 10px;font-size:14px;font-family:inherit;width:132px;text-align:right;outline:none;transition:border-color .2s}
+.field input.password{text-align:left;width:100%}
+.field input:focus{border-color:var(--purple)}
+.field input[type=checkbox]{width:20px;height:20px;accent-color:#7c5cff;cursor:pointer}
+.actions{display:flex;gap:10px;margin-top:20px}
+.btn{flex:1;padding:13px;border-radius:14px;border:none;font-size:14.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:linear-gradient(100deg,var(--purple),#5b8cff);color:#fff}
+.btn.ghost{background:rgba(255,255,255,.08);color:var(--txt)}
+.btn.danger{background:rgba(255,107,107,.15);color:#ff8a8a;border:1px solid rgba(255,107,107,.2)}
+.secret-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:10px 12px;background:rgba(124,92,255,.1);border-radius:12px;border:1px solid rgba(124,92,255,.2)}
+.secret-row .lock{font-size:18px}
+.secret-row span{font-size:12px;color:#cfd2e0;flex:1}
+.theme-btn{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--txt);font-size:12px;cursor:pointer;transition:all .2s}
+.theme-btn.active{border-color:var(--purple);background:rgba(124,92,255,.15)}
+
+.bg-particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bg-particles i{position:absolute;font-size:14px;opacity:.08;animation:float-up linear infinite}
+@keyframes float-up{0%{transform:translateY(100vh) rotate(0);opacity:0}10%{opacity:.08}90%{opacity:.08}100%{transform:translateY(-50px) rotate(360deg);opacity:0}}
+
+.ach-toast{position:fixed;top:18px;right:18px;padding:12px 14px 12px 12px;background:rgba(255,217,61,.15);border:1px solid rgba(255,217,61,.35);border-radius:14px;display:flex;gap:10px;align-items:center;z-index:400;backdrop-filter:blur(12px);transform:translateX(120%);transition:transform .5s cubic-bezier(.2,.7,.3,1)}
+.ach-toast.show{transform:translateX(0)}
+.ach-toast .a-emo{font-size:28px}
+.ach-toast .a-t{font-size:12px;font-weight:600;color:#ffe066}
+.ach-toast .a-d{font-size:11px;color:#cfd2e0;margin-top:2px}
+.pwd-modal .sheet{max-width:320px}
+.pwd-input{width:100%;padding:12px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--txt);font-family:inherit;outline:none;font-size:15px;margin:6px 0 12px}
+.pwd-input:focus{border-color:var(--purple)}
+
+/* 年度奖金预测卡 */
+.bonus-card{padding:14px;background:linear-gradient(135deg,rgba(255,217,61,.08),rgba(255,107,157,.08));border:1px solid rgba(255,217,61,.2);border-radius:14px;margin-bottom:10px}
+.bonus-title{font-size:13px;font-weight:700;color:var(--gold1);margin-bottom:6px}
+.bonus-amount{font-size:22px;font-weight:800;background:linear-gradient(100deg,var(--gold1),var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.bonus-sub{font-size:11.5px;color:var(--dim);margin-top:4px}
+
+/* 毒鸡汤 */
+.soup-box{padding:14px;background:linear-gradient(180deg,rgba(124,92,255,.1),rgba(34,211,238,.05));border:1px solid rgba(124,92,255,.2);border-radius:14px;margin-bottom:10px;position:relative;cursor:pointer}
+.soup-box .soup-label{font-size:10.5px;color:#8b8fa3;margin-bottom:6px}
+.soup-box .soup-text{font-size:13px;color:#cfd2e0;line-height:1.6;font-style:italic}
+.soup-box:active{transform:scale(.99)}
+.soup-box .soup-next{font-size:10.5px;color:var(--dim);margin-top:6px;text-align:right}
+
+/* ===== 小游戏通用 ===== */
+.game-box{padding:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;margin-bottom:10px}
+.game-title{font-size:13px;color:#ffe066;font-weight:600;text-align:center;margin-bottom:10px}
+.game-result{text-align:center;font-size:12.5px;color:var(--dim);min-height:18px;margin-top:8px;line-height:1.5}
+.game-result.win{color:var(--gold1);font-weight:700}
+.game-btn{width:100%;padding:12px;border-radius:14px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;color:#1a1a1a;background:linear-gradient(100deg,#ffe066,#ff8a00);transition:transform .15s}
+.game-btn:active{transform:scale(.97)}
+.game-btn:disabled{opacity:.4;cursor:not-allowed}
+.chip-row{display:flex;gap:6px;justify-content:center;margin:8px 0}
+.chip{padding:7px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--dim);font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
+.chip.active{border-color:rgba(255,217,61,.5);background:rgba(255,217,61,.15);color:var(--gold1)}
+.chip:active{transform:scale(.95)}
+
+/* 骰子 */
+.dice-row{display:flex;gap:10px;justify-content:center;margin:14px 0}
+.die{width:62px;height:62px;border-radius:14px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);display:grid;place-items:center;font-size:32px;line-height:1}
+.die.rolling{animation:dice-roll .45s linear infinite}
+@keyframes dice-roll{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(.88)}100%{transform:rotate(360deg) scale(1)}}
+
+/* 打地鼠 */
+.mole-stats{display:flex;justify-content:space-between;font-size:12px;color:var(--dim)}
+.mole-stats b{color:#fff}
+.mole-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.mole{aspect-ratio:1;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);display:grid;place-items:center;font-size:26px;cursor:pointer;user-select:none;transition:transform .1s,background .12s}
+.mole.up{background:rgba(255,217,61,.18);border-color:rgba(255,217,61,.45);box-shadow:0 0 14px -4px rgba(255,217,61,.7)}
+.mole:active{transform:scale(.93)}
+
+/* 记忆翻牌 */
+.memo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0}
+.mcard{aspect-ratio:1;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:grid;place-items:center;font-size:22px;cursor:pointer;transition:all .18s;color:transparent}
+.mcard.flipped{background:rgba(124,92,255,.22);border-color:rgba(124,92,255,.5);color:#fff;transform:translateY(-2px)}
+.mcard.matched{background:rgba(107,203,119,.14);border-color:rgba(107,203,119,.4);color:#fff;opacity:.65}
+.mcard.empty{background:transparent;border-color:transparent;cursor:default}
+
+/* 转盘 */
+.wheel-wrap{position:relative;width:186px;height:186px;margin:4px auto 12px}
+.wheel{width:100%;height:100%;border-radius:50%;border:4px solid rgba(255,255,255,.16);
+  background:conic-gradient(
+    #7c5cff 0 30deg,#22d3ee 30deg 60deg,#ffd93d 60deg 90deg,#ff6b9d 90deg 120deg,
+    #6bcb77 120deg 150deg,#c780ff 150deg 180deg,#ff8a00 180deg 210deg,#4d96ff 210deg 240deg,
+    #e85555 240deg 270deg,#8d8fa3 270deg 300deg,#b03366 300deg 330deg,#2bb5a0 330deg 360deg);
+  transition:transform 3.4s cubic-bezier(.15,.85,.2,1)}
+.wheel-pointer{position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:20px;z-index:2;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
+.wheel-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:#15151f;border:2px solid rgba(255,255,255,.2);display:grid;place-items:center;font-size:18px}
+.wheel-legend{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:10px}
+.wheel-legend span{font-size:10.5px;color:var(--dim);padding:3px 7px;border-radius:7px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+
+/* 转盘扇区文字 */
+.wheel-label{position:absolute;transform:translate(-50%,-50%);font-size:9px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.55);z-index:1;letter-spacing:.01em}
+
+/* 顺序记忆 */
+.mcard.ord{font-size:18px;font-weight:800}
+.mcard.ord-wrong{background:rgba(255,80,80,.28)!important;border-color:rgba(255,120,120,.7)!important;animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+
+/* 金库/里程碑 */
+.bank-amount{font-size:24px;font-weight:800;color:var(--coin);font-variant-numeric:tabular-nums;text-align:center;margin:6px 0}
+.bank-rate{text-align:center;font-size:11px;color:var(--dim);margin-bottom:10px}
+.mile-list{display:flex;flex-direction:column;gap:6px}
+.mile-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);font-size:12px}
+.mile-row.done{background:rgba(255,217,61,.1);border-color:rgba(255,217,61,.3)}
+.mile-row .m-emo{font-size:18px}
+.mile-row .m-name{flex:1;min-width:0}
+.mile-row .m-name b{color:#cfd2e0}
+.mile-row .m-name .m-desc{display:block;font-size:10.5px;color:var(--dim);margin-top:2px}
+.mile-row .m-val{color:var(--coin);font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* 街机小游戏 */
+.arcade-stage{position:relative;height:230px;border-radius:14px;overflow:hidden;margin-bottom:8px;
+  background:radial-gradient(circle at 50% 120%,rgba(255,138,0,.16),rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.08);touch-action:manipulation}
+/* 扫雷 */
+.mine-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin:4px 0 10px;padding:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;user-select:none}
+.mcell{aspect-ratio:1;border-radius:5px;display:grid;place-items:center;font-size:12px;font-weight:700;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .12s;font-variant-numeric:tabular-nums}
+.mcell:hover{background:rgba(255,255,255,.16)}
+.mcell.revealed{background:rgba(255,255,255,.16);cursor:default;border-color:rgba(255,255,255,.06)}
+.mcell.flagged{background:rgba(255,107,157,.18);border-color:rgba(255,107,157,.4)}
+.mcell.mine{background:rgba(255,60,60,.32);border-color:rgba(255,60,60,.55)}
+.mcell.n1{color:#7dd3fc}.mcell.n2{color:#4ade80}.mcell.n3{color:#fbbf24}
+.mcell.n4{color:#fb923c}.mcell.n5{color:#f87171}.mcell.n6{color:#c084fc}
+.mine-actions{display:flex;gap:8px}
+.mine-actions .game-btn{flex:1}
+.mine-flag-btn{flex:0 0 92px !important;background:rgba(255,255,255,.08) !important;box-shadow:none !important;color:var(--txt)}
+.mine-flag-btn.active{background:rgba(255,107,157,.2) !important;border-color:rgba(255,107,157,.5);color:#ffb3cf}
+
+/* 摸鱼搭子 */
+.pet-big{display:flex;align-items:center;gap:14px;padding:14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);margin-bottom:10px}
+.pet-big-emo{font-size:44px;line-height:1;transition:transform .3s}
+.pet-big-emo.happy{animation:pet-happy .8s ease}
+.pet-big-info{flex:1;min-width:0}
+.pet-big-name{font-size:15px;font-weight:700;color:#f4f5fa}
+.pet-big-mood{font-size:12px;color:var(--dim);margin:4px 0 6px}
+.pet-do{display:flex;gap:6px;flex-wrap:wrap}
+.pet-do .chip{flex:1;white-space:nowrap}
+.pet-dex{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pet-dex .pd{position:relative;padding:10px 4px 7px;border-radius:12px;text-align:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);cursor:pointer}
+.pet-dex .pd .pd-emo{font-size:26px;line-height:1.1;display:block}
+.pet-dex .pd .pd-name{font-size:10.5px;color:var(--dim);margin-top:3px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pet-dex .pd .pd-star{font-size:9px;color:var(--gold1);letter-spacing:-1px;display:block}
+.pet-dex .pd.locked{opacity:.35;filter:grayscale(1);cursor:default}
+.pet-dex .pd.owned{border-color:rgba(34,211,238,.35)}
+.pet-dex .pd.current{border-color:rgba(255,217,61,.65);background:rgba(255,217,61,.12)}
+.pet-dex .pd.gone::after{content:'🏃';position:absolute;right:3px;top:2px;font-size:12px}
+.arcade-hud{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:8px}
+.arcade-hud b{color:#fff}
+.mcard.seen{background:rgba(255,255,255,.03);border-style:dashed;opacity:.45;cursor:default}
+.bank-input{flex:1;min-width:0;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--txt);border-radius:10px;padding:9px 12px;font-size:13px;font-family:inherit;outline:none;-webkit-appearance:none}
+.bank-input::placeholder{color:rgba(139,143,163,.8)}
+
+/* 商店 */
+.shop-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);margin-bottom:7px}
+.shop-item .s-emo{font-size:20px}
+.shop-item .s-name{flex:1;min-width:0;font-size:12.5px;color:#cfd2e0}
+.shop-item .s-name small{display:block;font-size:10.5px;color:var(--dim);margin-top:2px}
+.shop-item button{border:none;border-radius:9px;padding:8px 10px;font-size:11.5px;font-weight:700;cursor:pointer;color:#1a1a22;background:linear-gradient(100deg,var(--gold1),var(--gold2));font-family:inherit}
+.shop-item button:active{transform:scale(.94)}
+
+/* 加载 */
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== 悬浮窗模式（仅桌面版启用，浏览器里不显示） ===== */
+.float-bar{display:none;position:sticky;top:0;z-index:6;align-items:center;gap:8px;height:34px;padding:0 10px;margin:0 0 6px;border-radius:0 0 12px 12px;background:rgba(12,12,20,.82);border:1px solid rgba(255,255,255,.09);border-top:0;-webkit-app-region:drag;user-select:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+body.brick-float .float-bar{display:flex}
+body.brick-float{padding:0;background:transparent;display:block;overflow:hidden}
+body.brick-float:not(.collapsed){height:100vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+body.brick-float.collapsed{height:100vh}
+body.brick-float::before,body.brick-float::after,body.brick-float .bg-particles{display:none}
+body.brick-float .app{margin:0 auto;padding:0 10px 24px;max-width:440px}
+body.brick-float .topbar{padding-top:6px}
+body.brick-float.collapsed .app,body.brick-float.collapsed .float-bar{display:none}
+body.brick-float.collapsed #toastHost,body.brick-float.collapsed .ach-toast{display:none}
+.fb-emo{font-size:15px}
+.fb-title{font-size:12px;color:#cfd2e0;font-weight:600}
+.fb-spacer{flex:1}
+.fb-btn{-webkit-app-region:no-drag;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#e8eaf2;width:28px;height:22px;border-radius:8px;font-size:12px;cursor:pointer;line-height:1;display:grid;place-items:center;padding:0}
+.fb-btn:active{transform:scale(.92)}
+.fb-btn.on{background:rgba(255,217,61,.18);border-color:rgba(255,217,61,.45);color:#ffe066}
+.float-launch{display:none;position:fixed;left:17px;top:17px;width:66px;height:66px;border-radius:50%;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 34% 28%,#ffe066,#ff8a00 62%,#d96a00);cursor:pointer;user-select:none;box-shadow:0 5px 14px rgba(0,0,0,.5);-webkit-app-region:no-drag;transition:transform .12s;transform-origin:center}
+.float-launch:active{transform:scale(.94)}
+body.float-dragging .float-launch{cursor:grabbing;transform:scale(.96);box-shadow:0 8px 18px rgba(0,0,0,.55)}
+.float-launch::before{content:'';position:absolute;inset:-7px;border-radius:50%;pointer-events:none;background:conic-gradient(#22d3ee calc(var(--p,0)*1%),rgba(255,255,255,.14) 0);-webkit-mask:radial-gradient(circle,transparent 34px,#000 35px);mask:radial-gradient(circle,transparent 34px,#000 35px)}
+body.brick-float.collapsed .float-launch{display:flex}
+.fl-emo{font-size:26px;line-height:1}
+.fl-coin{font-size:10px;font-weight:800;color:#4a2a00;margin-top:-1px;font-variant-numeric:tabular-nums}
+
+/* ============ 翻页开关 ============ */
+.page-switch{display:flex;gap:8px;margin:0 6px 12px;padding:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:14px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+.page-switch button{flex:1;padding:10px 8px;border:none;border-radius:10px;background:transparent;color:var(--dim);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.page-switch button.active{background:rgba(255,255,255,.09);color:var(--txt);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.page{display:none;animation:page-in .35s ease}
+.page.active{display:block}
+@keyframes page-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ============ 立体驴拉磨 ============ */
+.donkey-wrap{margin-top:14px;border-radius:18px;position:relative;background:linear-gradient(180deg,rgba(255,220,160,.07),rgba(255,255,255,.015));border:1px solid rgba(255,220,160,.12);padding:12px 6px 6px;overflow:hidden}
+.donkey-head{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--dim);padding:0 10px}
+.donkey-head b{color:#e8c47a;font-weight:700}
+.donkey-stats{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--dim);padding:2px 8px 8px}
+.donkey-stats .hi{color:var(--gold1);font-weight:600}
+.donkey-stats .pk{color:var(--pink)}
+.donkey-wrap svg{display:block;width:100%;height:auto}
+@keyframes legFwd{0%,100%{transform:rotate(0)}50%{transform:rotate(-10deg)}}
+@keyframes legBack{0%,100%{transform:rotate(0)}50%{transform:rotate(10deg)}}
+.leg-a,.leg-d{animation:legFwd .32s ease-in-out infinite;transform-box:fill-box;transform-origin:top center}
+.leg-b,.leg-c{animation:legBack .32s ease-in-out infinite .16s;transform-box:fill-box;transform-origin:top center}
+@keyframes dk-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.6px)}}
+.dk-body{animation:dk-bob .16s ease-in-out infinite}
+@keyframes head-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.2px)}}
+.head{animation:head-bob .5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}94%{transform:scaleY(.08)}}
+.donkey-eye{animation:blink 4.5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes tail-wag{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(12deg)}}
+.donkey-tail{animation:tail-wag .5s ease-in-out infinite;transform-box:fill-box;transform-origin:top left}
+@keyframes carrot-sway{0%,100%{transform:translate(-66px,-66px) rotate(-4deg)}50%{transform:translate(-66px,-66px) rotate(6deg)}}
+.carrot-hang{animation:carrot-sway 1.1s ease-in-out infinite;transform-box:fill-box;transform-origin:top center}
+
+/* ============ 摸鱼君等级扩展 ============ */
+.pet-row-lv .pet-name .lv{color:var(--cyan);font-size:10.5px;margin-left:5px;font-weight:700}
+.pet-row-lv .hp-wrap{margin-top:6px}
+.pet-row-lv .hp-wrap .k{font-size:10.5px;color:var(--dim);display:flex;justify-content:space-between}
+.pet-row-lv .pet-hp{height:5px}
+.pet-row-lv .exp-hp{height:4px;margin-top:4px}
+.pet-row-lv .exp-hp .fill{height:100%;background:linear-gradient(90deg,#22d3ee,#7c5cff);border-radius:4px;width:0%;transition:width .5s}
+.pet-acts{display:flex;gap:6px;margin-top:12px}
+.pet-acts button{flex:1;padding:9px 0;border-radius:10px;border:none;background:rgba(255,255,255,.06);color:#cfd2e0;font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s}
+.pet-acts button:active{background:rgba(255,255,255,.13);transform:scale(.97)}
+
+/* 摸鱼君游动 + 气泡 */
+@keyframes fish-swim{0%,100%{transform:translateX(-5px) rotate(-3deg)}25%{transform:translateX(0) rotate(0)}50%{transform:translateX(5px) rotate(3deg)}75%{transform:translateX(0) rotate(0)}}
+@keyframes bubble-up{0%{transform:translate(0,0) scale(.4);opacity:0}20%{opacity:.9}100%{transform:translate(6px,-26px) scale(1);opacity:0}}
+.pet-row-lv .pet-emoji{animation:fish-swim 2.4s ease-in-out infinite}
+.pet-row-lv .pet-emoji::before,.pet-row-lv .pet-emoji::after{content:'';position:absolute;left:26px;top:6px;width:5px;height:5px;border-radius:50%;background:rgba(140,200,255,.55)}
+.pet-row-lv .pet-emoji::before{animation:bubble-up 2.2s ease-out infinite}
+.pet-row-lv .pet-emoji::after{animation:bubble-up 2.2s ease-out infinite 1.1s}
+.pet-row-lv .pet-emoji{position:relative}
+
+/* ============ 摸鱼等级（嵌在摸鱼君卡片里） ============ */
+.lv-box{
+  margin-top:10px;padding:10px 12px;border-radius:14px;
+  background:linear-gradient(120deg,rgba(34,211,238,.13),rgba(124,92,255,.13));
+  border:1px solid rgba(34,211,238,.22);
+}
+.lv-head{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.lv-head .lv-chip{font-size:10px;font-weight:800;color:#08121a;padding:2px 7px;border-radius:999px;background:linear-gradient(160deg,#22d3ee,#7c5cff);line-height:1.5}
+.lv-head .lv-title{font-size:12px;font-weight:700;color:#eaf6ff}
+.lv-head .lv-need{margin-left:auto;font-size:10px;color:var(--dim);white-space:nowrap}
+.lv-track{height:7px;margin-top:8px;border-radius:6px;background:rgba(255,255,255,.09);overflow:hidden}
+.lv-fill{height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#22d3ee,#7c5cff);transition:width .5s}
+.lv-foot{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-top:6px;font-size:10px;color:var(--dim)}
+.lv-foot .lv-mood{color:var(--gold1)}
+.lv-box.lvup{animation:lv-pulse .8s ease}
+@keyframes lv-pulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 3px rgba(34,211,238,.35)}}
+
+/* 搭子图鉴 6 列（覆盖原 4 列） */
+.pet-dex{grid-template-columns:repeat(6,1fr)}
+.pet-dex-home .pd{padding:8px 2px 5px}
+.pet-dex-home .pd .pd-emo{font-size:22px}
+.pet-dex-home .pd .pd-name{font-size:9px}
+
+
+/* ===== demo-donkey 补充样式 ===== */
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a12;--txt:#f4f5fa;--dim:#8b8fa3;
+  --gold1:#ffe066;--gold2:#ff8a00;
+  --purple:#7c5cff;--cyan:#22d3ee;--pink:#ff6b9d;
+  --coin:#ffd93d;--green:#6bcb77;
+}
+body{
+  background:var(--bg);color:var(--txt);padding:20px 14px 60px;
+  font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  display:flex;justify-content:center;
+}
+.app{width:100%;max-width:440px}
+
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.028));
+  border:1px solid rgba(255,255,255,.1);border-radius:26px;
+  padding:20px 18px 18px;margin-bottom:14px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 20px 50px -20px rgba(0,0,0,.85);
+}
+.page-title{display:flex;align-items:baseline;flex-wrap:wrap;margin:2px 6px 12px;gap:4px}
+.page-title h1{font-size:17px;font-weight:800}
+.page-title .sub{font-size:11px;color:var(--dim);font-weight:500}
+.label{font-size:12px;color:var(--dim);letter-spacing:.1em;margin-bottom:2px}
+.amount{
+  font-size:clamp(2.6rem,13.5vw,3.5rem);font-weight:800;line-height:1.05;
+  background:linear-gradient(100deg,var(--gold1),var(--gold2) 72%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  font-variant-numeric:tabular-nums;
+}
+.amount .cur{font-size:.46em;vertical-align:.22em;margin-right:2px}
+.per{font-size:12.5px;color:var(--dim);margin-top:8px}
+.per b{color:var(--gold1)}
+.bar{position:relative;height:18px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+.bar-fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#7c5cff,#22d3ee 48%,#ffd93d);transition:width .5s}
+.bar-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.5) 50%,transparent 80%);background-size:220% 100%;animation:shine 2.2s linear infinite}
+@keyframes shine{from{background-position:220% 0}to{background-position:-120% 0}}
+.bar-meta{display:flex;justify-content:space-between;margin-top:9px;font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+.bar-meta b{color:#e8eaf2;font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:18px}
+.stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:10px 6px;text-align:center}
+.stat .k{display:block;font-size:10.5px;color:var(--dim);margin-bottom:4px}
+.stat .v{display:block;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ============ 立体驴拉磨 ============ */
+.donkey-wrap{
+  margin-top:14px;border-radius:18px;position:relative;
+  background:linear-gradient(180deg,rgba(255,220,160,.07),rgba(255,255,255,.015));
+  border:1px solid rgba(255,220,160,.12);
+  padding:12px 6px 6px;overflow:hidden;
+}
+.donkey-head{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:12px;color:var(--dim);padding:0 10px;
+}
+.donkey-head b{color:#e8c47a;font-weight:700}
+.donkey-stats{
+  display:flex;justify-content:center;gap:14px;flex-wrap:wrap;
+  font-size:11.5px;color:var(--dim);padding:2px 8px 8px;
+}
+.donkey-stats .hi{color:var(--gold1);font-weight:600}
+.donkey-stats .pk{color:var(--pink)}
+.donkey-wrap svg{display:block;width:100%;height:auto}
+
+/* 驴腿：对角步态（前近+后远 一组 / 前远+后近 一组），幅度收敛更自然 */
+@keyframes legFwd{0%,100%{transform:rotate(0)}50%{transform:rotate(-10deg)}}
+@keyframes legBack{0%,100%{transform:rotate(0)}50%{transform:rotate(10deg)}}
+.leg-a,.leg-d{animation:legFwd .32s ease-in-out infinite;transform-box:fill-box;transform-origin:top center}
+.leg-b,.leg-c{animation:legBack .32s ease-in-out infinite .16s;transform-box:fill-box;transform-origin:top center}
+/* 躯干小跑起伏 */
+@keyframes dk-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.6px)}}
+.dk-body{animation:dk-bob .16s ease-in-out infinite}
+@keyframes head-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.2px)}}
+.head{animation:head-bob .5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}94%{transform:scaleY(.08)}}
+.donkey-eye{animation:blink 4.5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes tail-wag{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(12deg)}}
+.donkey-tail{animation:tail-wag .5s ease-in-out infinite;transform-box:fill-box;transform-origin:top left}
+/* 胡萝卜悬挂：CSS transform 必须包含 translate（否则覆盖 SVG transform 属性） */
+@keyframes carrot-sway{
+  0%,100%{transform:translate(-66px,-66px) rotate(-4deg)}
+  50%{transform:translate(-66px,-66px) rotate(6deg)}
+}
+.carrot-hang{animation:carrot-sway 1.1s ease-in-out infinite;transform-box:fill-box;transform-origin:top center}
+/* 磨盘顶面纹理自转：JS 驱动，绝对可控 */
+
+/* ============ 摸鱼君 ============ */
+@keyframes fish-swim{
+  0%,100%{transform:translateX(-5px) rotate(-3deg)}
+  25%{transform:translateX(0) rotate(0)}
+  50%{transform:translateX(5px) rotate(3deg)}
+  75%{transform:translateX(0) rotate(0)}
+}
+@keyframes bubble-up{
+  0%{transform:translate(0,0) scale(.4);opacity:0}
+  20%{opacity:.9}
+  100%{transform:translate(6px,-26px) scale(1);opacity:0}
+}
+.pet-emoji{font-size:30px;display:inline-block;position:relative;animation:fish-swim 2.4s ease-in-out infinite}
+.pet-emoji::before,.pet-emoji::after{
+  content:'';position:absolute;left:26px;top:6px;width:5px;height:5px;
+  border-radius:50%;background:rgba(140,200,255,.55);
+}
+.pet-emoji::before{animation:bubble-up 2.2s ease-out infinite}
+.pet-emoji::after{animation:bubble-up 2.2s ease-out infinite 1.1s}
+.pet-row{display:flex;align-items:center;gap:12px;padding:4px 0}
+.pet-info{flex:1}
+.pet-name{font-size:13px;color:#cfd2e0;font-weight:600}
+.pet-name .lv{color:var(--cyan);font-size:11px;margin-left:6px;font-weight:700}
+.pet-mood{font-size:11.5px;color:var(--dim);margin-top:2px}
+.hp-wrap{margin-top:6px}
+.hp-wrap .k{font-size:10.5px;color:var(--dim);display:flex;justify-content:space-between}
+.pet-hp{height:5px;background:rgba(255,255,255,.08);border-radius:4px;margin-top:3px;overflow:hidden}
+.pet-hp-fill{height:100%;background:linear-gradient(90deg,#ff6b9d,#ffd93d,#6bcb77);width:62%;transition:width .5s}
+.exp-hp{height:4px}
+.exp-hp .fill{height:100%;background:linear-gradient(90deg,#22d3ee,#7c5cff);width:80%;border-radius:4px}
+.lvup-tip{font-size:10.5px;color:var(--cyan);margin-top:7px;line-height:1.6}
+.pet-acts{display:flex;gap:6px;margin-top:12px}
+.pet-acts button{
+  flex:1;padding:8px 0;border-radius:10px;border:none;background:rgba(255,255,255,.06);
+  color:#cfd2e0;font-size:11px;cursor:pointer;font-family:inherit;
+}
+.pet-acts button:active{background:rgba(255,255,255,.12)}
+.pet-acts button.spy{background:rgba(34,211,238,.12);color:#22d3ee}
+
+.cost-row{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:2px;padding:12px 14px;border-radius:14px;
+  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);
+  font-size:12px;color:var(--dim);
+}
+.cost-row .coin-big{color:var(--coin);font-size:14px;font-weight:800}
+.cost-row .ot-badge{color:var(--pink);font-size:11px;margin-left:8px}
+
+.page-switch{
+  display:flex;gap:8px;margin:0 6px 14px;padding:4px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px);
+}
+.page-switch button{
+  flex:1;padding:10px 8px;border:none;border-radius:10px;
+  background:transparent;color:var(--dim);font-size:12.5px;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all .2s;
+}
+.page-switch button.active{
+  background:rgba(255,255,255,.09);color:var(--txt);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+}
+.page{display:none;animation:page-in .35s ease}
+.page.active{display:block}
+@keyframes page-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.section-head h3{font-size:15px;font-weight:800;color:#e8eaf2}
+.section-head .tag{font-size:11px;color:var(--dim)}
+.game-list{display:flex;flex-direction:column;gap:8px}
+.game-item{
+  display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:14px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07);
+  cursor:pointer;transition:transform .15s,background .2s;
+}
+.game-item:active{transform:scale(.98);background:rgba(255,255,255,.07)}
+.game-item .emoji{font-size:26px;line-height:1;width:36px;text-align:center}
+.game-item .name{font-size:13px;font-weight:600;color:#e8eaf2}
+.game-item .desc{font-size:11px;color:var(--dim);margin-top:2px}
+.game-item .meta{margin-left:auto;text-align:right;font-size:11px}
+.game-item .meta .n{color:var(--gold1);font-weight:600;font-size:12px}
+.badge{display:inline-block;padding:1px 6px;border-radius:999px;font-size:10px;margin-left:4px}
+.badge.good{background:rgba(107,203,119,.15);color:#6bcb77}
+.badge.bad{background:rgba(255,107,157,.15);color:#ff6b9d}
+.pet-dex-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.pet-cell{
+  aspect-ratio:1;border-radius:13px;display:grid;place-items:center;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+  font-size:22px;opacity:.32;cursor:pointer;transition:all .2s;
+}
+.pet-cell:hover{opacity:.6}
+.pet-cell.on{opacity:1;background:rgba(255,255,255,.09)}
+.pet-cell.me{border-color:var(--coin);box-shadow:0 0 0 1px var(--coin),0 0 14px rgba(255,217,61,.25)}
+.pet-cell .lock{font-size:13px;color:var(--dim)}
+
+</style>
+</head>
+<body>
+
+<div class="float-bar" id="floatBar">
+  <span class="fb-emo">🐟</span><span class="fb-title">搬砖进度条</span><span class="fb-spacer"></span>
+  <button class="fb-btn" id="floatPin" title="固定展开，不自动收起">📌</button>
+  <button class="fb-btn" id="floatExit" title="退出程序">✕</button>
+</div>
+<div class="float-launch" id="floatLaunch" title="鼠标移上来就展开">
+  <div class="fl-emo">🐟</div>
+  <div class="fl-coin" id="flCoin">0</div>
+</div>
+<div class="bg-particles" id="bgParticles"></div>
+<div class="ach-toast" id="achToast" hidden><div class="a-emo" id="achToastEmo">🏆</div><div><div class="a-t" id="achToastTitle">成就解锁！</div><div class="a-d" id="achToastDesc">desc</div></div></div>
+<div id="toastHost"></div>
+
+<div class="app">
+<div class="topbar">
+    <div class="date" id="dateText">—</div>
+    <div class="top-actions">
+      <button class="icon-btn" id="focusBtn" title="专注模式">🎯</button>
+      <button class="icon-btn" id="soupBtn" title="每日一句毒鸡汤">🍲</button>
+      <button class="icon-btn" id="soundBtn" title="音效">🔊</button>
+      <button class="icon-btn" id="gearBtn" aria-label="设置">⚙️</button>
+    </div>
+  </div>
+  <div class="page-switch">
+    <button class="active" data-target="home">🫏 拉磨现场</button>
+    <button data-target="play">🎮 牛马之家</button>
+  </div>
+
+<!-- ================= 第一页 ================= -->
+<div class="page active" data-page="home">
+    <!-- <div class="page-title">
+      <h1>🫏 拉磨现场</h1>
+    </div> -->
+
+    <main class="card" id="mainCard">
+      <div class="pill" id="pill"><span class="dot"></span><span id="pillText">搬砖中</span></div>
+      <div class="label">绩效饲料</div>
+      <div class="amount-wrap">
+        <div class="amount" id="amountBox"><span class="cur">¥</span><span id="money">0.00</span></div>
+        <div class="peek-btn" id="peekBtn" title="偷看薪资（需要密码）">👁️</div>
+      </div>
+      <div class="per">每秒 ≈ <b id="perSec">¥0.0000</b> · 今日目标 <b id="dayPay">****</b>（加班不给钱 · 已白干 <span id="otMin">0</span>min）</div>
+
+      <div class="buff-banner hidden" id="buffBanner">
+        <span class="b-icon" id="buffIcon">✨</span>
+        <span class="b-txt" id="buffText">幸运时刻</span>
+        <span class="b-left" id="buffLeft">10s</span>
+      </div>
+
+      <div class="bar" style="margin-top:18px">
+        <div class="bar-fill" id="barFill"></div>
+        <div class="marks"><i style="left:25%"></i><i style="left:50%"></i><i style="left:75%"></i></div>
+      </div>
+      <div class="bar-meta"><span>进度 <b id="pct">0%</b></span><span id="leftText">还剩 0h0m</span></div>
+
+      <div class="stats">
+        <div class="stat"><span class="k">距下班</span><span class="v" id="countdown">--:--:--</span></div>
+        <div class="stat"><span class="k">已工作</span><span class="v" id="worked">0m</span></div>
+        <div class="stat"><span class="k">还差</span><span class="v" id="remainMoney">****</span></div>
+        <div class="stat"><span class="k">总资产</span><span class="v" style="color:var(--coin)">🪙 <span id="coinCount">0</span></span></div>
+      </div>
+
+      <div class="ot-info" id="otInfo"></div>
+
+      <div class="mood" style="margin-top:10px">
+        <div class="emo" id="emoji">🌅</div>
+        <div class="txt" id="quip">新的一天，从一杯水开始</div>
+      </div>
+    </main>
+
+    <!-- ================= 立体驴拉磨 ================= -->
+    <div class="donkey-wrap">
+      <div class="donkey-head">
+        <b>🐴 摸鱼驴 · 拉磨中</b>
+        <span id="donkeyMood">💪 干劲十足</span>
+      </div>
+      <svg viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="200" cy="160" rx="175" ry="48" fill="rgba(0,0,0,.28)"/>
+        <ellipse cx="80" cy="160" rx="3" ry="1.5" fill="rgba(139,90,43,.45)"/>
+        <ellipse cx="320" cy="160" rx="3" ry="1.5" fill="rgba(139,90,43,.45)"/>
+        <ellipse cx="200" cy="116" rx="3" ry="1.5" fill="rgba(139,90,43,.45)"/>
+        <g id="layerBack"></g>
+        <g>
+          <rect x="162" y="162" width="7" height="34" rx="2" fill="#6b4a2a" stroke="#4a3016" stroke-width="1"/>
+          <rect x="231" y="162" width="7" height="34" rx="2" fill="#6b4a2a" stroke="#4a3016" stroke-width="1"/>
+          <rect x="158" y="180" width="84" height="6" rx="2" fill="#7d5836" stroke="#4a3016" stroke-width="1"/>
+          <ellipse cx="200" cy="153" rx="52" ry="14" fill="#3a3226"/>
+          <ellipse cx="200" cy="150" rx="52" ry="14" fill="#4a4030"/>
+          <path d="M148 146 A52 14 0 0 0 252 146 L252 153 A52 14 0 0 1 148 153 Z" fill="#5a4d3a"/>
+          <ellipse cx="200" cy="146" rx="52" ry="14" fill="#8a7d64" stroke="#2d2518" stroke-width="2"/>
+          <ellipse cx="200" cy="146" rx="5" ry="2.2" fill="#1a1308"/>
+          <rect x="196" y="124" width="8" height="24" rx="3" fill="#8b5a2b" stroke="#39301f" stroke-width="1.2"/>
+          <ellipse cx="200" cy="124" rx="5" ry="2.2" fill="#a97142" stroke="#39301f" stroke-width="1"/>
+        </g>
+        <g id="layerFront"></g>
+      </svg>
+      <div class="donkey-stats">
+        <span>🥕 第 <b class="hi" id="lapN">0</b> 圈</span>
+        <span>已帮老板磨 <b class="hi" id="donkeyCoin">0 🪙</b></span>
+        <span class="pk">胡萝卜：永远差一点点</span>
+      </div>
+    </div>
+
+    <!-- ================= 摸鱼君 ================= -->
+    <div class="card">
+      <div class="pet-row pet-row-lv" id="petRow">
+        <div class="pet-emoji" id="petEmoji">🐟</div>
+        <div class="pet-info">
+          <div class="pet-name" id="petName">摸鱼君</div>
+          <div class="pet-mood" id="petMood">今天也要一起摸鱼呀～</div>
+          <div class="hp-wrap">
+            <!-- <div class="k"><span>心情</span><span id="petHpTxt">60/100</span></div> -->
+            <div class="pet-hp"><div class="pet-hp-fill" id="petHp"></div></div>
+          </div>
+          <div class="lv-box" id="lvCard">
+            <div class="lv-head">
+              <b class="lv-chip" id="lvBadge">Lv.1</b>
+              <span class="lv-title" id="lvTitle">摸鱼实习生</span>
+              <span class="lv-need" id="lvNeed">距下一级还差 300 经验</span>
+            </div>
+            <div class="lv-track"><div class="lv-fill" id="lvFill"></div></div>
+            <div class="lv-foot">
+              <span id="lvExpTxt">0 / 300 经验</span>
+              <span class="lv-mood" id="lvMoodBonus">心情加成 ×1.15</span>
+              <span id="lvNext">下一级：Lv.2 摸鱼学徒</span>
+            </div>
+          </div>
+          <div class="lvup-tip">💡 升级途径：摸鱼小游戏得分 / 喂食搭子 / 派去摸鱼 / 看驴拉磨 · 心情越高经验加成越多</div>
+        </div>
+      </div>
+      <div class="pet-acts">
+        <button id="homePetFeed">🍖 喂食 -12🪙</button>
+        <button id="homePetTouch">✋ 抚摸</button>
+        <button id="homePetPlay">🎾 逗它玩 -30🪙</button>
+        <button class="spy" id="homePetFish">🎣 派去摸鱼</button>
+      </div>
+    </div>
+
+    <div class="cost-row">
+      <div id="otCostRow">🚌 通勤 -20🪙<span class="ot-badge" id="otCostBadge">· 加班无薪 +0</span></div>
+      <div class="coin-big" id="coinBig">🪙 0</div>
+    </div>
+</div>
+
+<!-- ================= 第二页 ================= -->
+<!-- ================= 第二页：牛马之家 ================= -->
+<div class="page" data-page="play">
+  <!-- <div class="page-title">
+    <h1>🐮 牛马之家</h1>
+  </div> -->
+
+  <div class="card">
+    <div class="section-head">
+      <h3>🎮 摸鱼小游戏</h3>
+      <span class="tag"><span id="playGStats">下班后 · 唯一的精神寄托</span></span>
+    </div>
+    <div class="tabs">
+      <div class="tab active" data-tab="dice">🎲 猜大小</div>
+      <div class="tab" data-tab="mole">🐹 打地鼠</div>
+      <div class="tab" data-tab="memory">🧠 记忆翻牌</div>
+      <div class="tab" data-tab="order">🔢 顺序</div>
+      <div class="tab" data-tab="wheel">🎡 转盘</div>
+      <div class="tab" data-tab="mine">💣 扫雷</div>
+      <div class="tab" data-tab="stock">📈 股票</div>
+      <div class="tab" data-tab="bank">🏦 金库</div>
+      <div class="tab" data-tab="shop">🛒 商店</div>
+      <div class="tab" data-tab="report">📝 日报</div>
+      <div class="tab" data-tab="memo">⏰ 备忘</div>
+      <div class="tab" data-tab="petdex">🐾 搭子图鉴</div>
+    </div>
+<div class="panel active" data-panel="dice">
+      <div class="game-box">
+        <div class="game-title">🎲 骰子 · 3 颗 · 4 种玩法</div>
+        <div class="dice-row">
+          <div class="die" id="die0">⚀</div>
+          <div class="die" id="die1">⚁</div>
+          <div class="die" id="die2">⚂</div>
+        </div>
+        <div class="chip-row" id="diceBet">
+          <button class="chip active" data-bet="10">10 🪙</button>
+          <button class="chip" data-bet="20">20 🪙</button>
+          <button class="chip" data-bet="50">50 🪙</button>
+        </div>
+        <div class="chip-row">
+          <button class="chip active" id="betSmall">押小 3-10</button>
+          <button class="chip" id="betBig">押大 11-18</button>
+          <button class="chip" id="betTriple">豹子 ×20</button>
+          <button class="chip" id="betNum">点数</button>
+        </div>
+        <div class="chip-row" id="diceNumRow" style="display:none">
+          <button class="chip" data-n="1">1</button>
+          <button class="chip" data-n="2">2</button>
+          <button class="chip" data-n="3">3</button>
+          <button class="chip" data-n="4">4</button>
+          <button class="chip" data-n="5">5</button>
+          <button class="chip" data-n="6">6</button>
+        </div>
+        <button class="game-btn" id="diceRollBtn" style="margin-top:6px">🎲 开摇</button>
+        <div class="game-result" id="diceResult">选好玩法和筹码，开摇 🎲 · 连胜每场 +5🪙</div>
+      </div>
+      <div class="game-result">押大小 1.9 倍返还（抽水 5%）· 豹子（三颗相同）1:19 · 点数：出现 1:1 / 两颗 1:2 / 三颗 1:11 · 连胜奖励每场 +5🪙（封顶 +50）</div>
+    </div><div class="panel" data-panel="mole">
+      <div class="game-box">
+        <div class="game-title">🐹 打地鼠 · 20 秒 · 20 🪙 一局</div>
+        <div class="mole-stats">
+          <span>剩余 <b id="moleTime">20.0</b>s</span>
+          <span>命中 <b id="moleHits">0</b> 次</span>
+        </div>
+        <div class="mole-grid" id="moleGrid"></div>
+        <button class="game-btn" id="moleBtn">🔨 开始 · 20 🪙</button>
+        <div class="game-result" id="moleResult">每拍中一次 +3 🪙 · 拿够 7 次才回本</div>
+      </div>
+    </div><div class="panel" data-panel="memory">
+      <div class="game-box">
+        <div class="game-title">🧠 摸鱼记忆翻牌</div>
+        <div class="chip-row" id="memModes">
+          <button class="chip active" data-m="0">12张 · 20🪙</button>
+          <button class="chip" data-m="1">16张 · 30🪙</button>
+          <button class="chip" data-m="2">24张 · 50🪙</button>
+        </div>
+        <div class="memo-grid" id="memGrid"></div>
+        <div style="display:flex;gap:8px">
+          <button class="game-btn" id="memBtn" style="flex:1">🃏 开局 · 20 🪙</button>
+          <button class="game-btn" id="memPeek" style="flex:0 0 38%;background:linear-gradient(100deg,#7c5cff,#5b8cff);color:#fff">👁️ 全看1s (15🪙)</button>
+        </div>
+        <div class="game-result" id="memResult">配对 +8 🪙 · 翻错 -3 🪙 · 全清额外 +50</div>
+        <div class="game-result">点上方档位可直接按新档位重开一局（会扣对应入场费）</div>
+      </div>
+    </div><div class="panel" data-panel="order">
+      <div class="game-box">
+        <div class="game-title">🔢 顺序记忆 0→9 · 30 🪙 一局</div>
+        <div class="memo-grid" id="ordGrid" style="grid-template-columns:repeat(5,1fr)"></div>
+        <div class="mole-stats">
+          <span id="ordPhase">点开始进入记忆阶段</span>
+          <span>进度 <b id="ordScore">0/10</b></span>
+        </div>
+        <button class="game-btn" id="ordBtn">🔢 开始 · 30 🪙</button>
+        <div class="game-result" id="ordResult">记忆阶段每张牌只能看一次（0.5s）→ 挑战只有一次机会，顺序点错立刻扣 15 🪙 并结束</div>
+      </div>
+    </div><div class="panel" data-panel="wheel">
+      <div class="game-box">
+        <div class="game-title">🎡 幸运转盘 · 奖池 <b id="wheelJackpot" style="color:var(--coin)">80</b> 🪙</div>
+        <div class="wheel-wrap">
+          <div class="wheel-pointer">🔻</div>
+          <div class="wheel" id="wheel"></div>
+          <div class="wheel-center">🐟</div>
+        </div>
+        <div class="chip-row" id="wheelBet">
+          <button class="chip" data-bet="10">10🪙</button>
+          <button class="chip active" data-bet="20">20🪙</button>
+          <button class="chip" data-bet="50">50🪙</button>
+        </div>
+        <button class="game-btn" id="wheelBtn">🎡 转起来 · 20 🪙</button>
+        <div class="game-result" id="wheelResult"></div>
+      </div>
+    </div><div class="panel" data-panel="mine">
+      <div class="game-box">
+        <div class="game-title">💣 扫雷 · 9×9 · 18 颗雷 · 20 🪙 / 局</div>
+        <div class="arcade-hud">
+          <span>剩余雷 <b id="mineLeft">18</b></span>
+          <span>用时 <b id="mineTime">0</b>s</span>
+          <span>已翻 <b id="mineRevealed">0</b>/63</span>
+        </div>
+        <div class="mine-grid" id="mineGrid"></div>
+        <div class="mine-actions">
+          <button class="game-btn" id="mineBtn">💣 新开一局 · 20 🪙</button>
+          <button class="game-btn mine-flag-btn" id="mineFlagBtn">🚩 标记</button>
+        </div>
+        <div class="game-result" id="mineResult">左键翻格 · 右键插旗 · 踩雷 -20 🪙 · 通关 +130 🪙（速通额外 +20）</div>
+      </div>
+    </div><div class="panel" data-panel="stock">
+      <div class="stock-wrap">
+        <div class="stock-real-row">
+          <input type="text" id="stockTicker" placeholder="A股代码 如 600519 / 000001 / 300750" maxlength="6" inputmode="numeric">
+          <button id="fetchStockBtn">🔄 拉数据</button>
+        </div>
+        <div class="stock-head">
+          <span class="stock-name" id="stockName">🐟 摸鱼科技 (模拟)</span>
+          <div>
+            <span class="stock-price" id="stockPrice">¥0.00</span>
+            <span class="stock-chg" id="stockChg">+0%</span>
+          </div>
+        </div>
+        <div class="stock-chart"><svg id="stockChart" viewBox="0 0 300 60" preserveAspectRatio="none"></svg></div>
+        <div class="stock-holdings">
+          <span>持有: <b id="stockHolds" style="color:var(--coin)">0</b> 股</span>
+          <span>均价: <b id="stockAvg" style="color:var(--coin)">¥0.00</b></span>
+          <span>估值: <b id="stockVal" style="color:var(--coin)">¥0</b></span>
+        </div>
+        <div class="stock-actions">
+          <button class="stock-btn buy" id="buyBtn">买入 (10🪙)</button>
+          <button class="stock-btn sell" id="sellBtn">全部卖出</button>
+          <button class="stock-btn" id="simBtn">🎲 切模拟</button>
+        </div>
+        <div class="stock-status offline" id="stockStatus">💡 默认模拟数据 · 输入 6 位 A 股代码（东方财富实时行情）</div>
+      </div>
+    </div><div class="panel" data-panel="bank">
+      <div class="game-box">
+        <div class="game-title">🏦 摸鱼金库 · 攒钱生息</div>
+        <div class="bank-amount" id="bankAmount">0 🪙</div>
+        <div class="bank-rate" id="bankRate">利率 3%/小时 · 前 5000 🪙 计息 · 复利计息</div>
+        <div class="stock-actions">
+          <button class="stock-btn buy" id="bankIn">存入一半</button>
+          <button class="stock-btn" id="bankInAll">全部存入</button>
+          <button class="stock-btn sell" id="bankOut">全部取出</button>
+        </div>
+        <div class="chip-row" style="gap:8px;margin-bottom:4px">
+          <input class="bank-input" type="number" id="bankInput" placeholder="输入要存/取的数量" min="1" step="1" inputmode="numeric">
+          <button class="chip" id="bankInSet" style="flex:0 0 auto">存入</button>
+          <button class="chip" id="bankOutSet" style="flex:0 0 auto">取出</button>
+        </div>
+        <div class="game-result" id="bankResult"></div>
+      </div>
+      <div class="game-box">
+        <div class="game-title">🏆 攒金币里程碑 · 累计赚取</div>
+        <div class="mile-list" id="milestoneList"></div>
+      </div>
+    </div><div class="panel" data-panel="shop">
+      <div class="game-box">
+        <div class="game-title">🛒 摸鱼商店 · 金币有去处</div>
+        <div class="panel-note" style="margin-bottom:10px">赚得多也要花得掉：买咖啡、买早退、抽盲盒，金币不动就会贬值心情。</div>
+        <div id="shopList"></div>
+      </div>
+      <div class="game-result">每天首次打开会自动扣 20 🪙 通勤+早餐费 · 金币不是只进不出的</div>
+    </div><div class="panel" data-panel="report">
+      <div class="panel-note">下班时自动生成今天的摸鱼日报 📋 或手动点按钮</div>
+      <div class="foot-actions" style="margin-top:0;margin-bottom:10px">
+        <button class="mini-btn" id="genReportBtn">📝 生成今日日报</button>
+        <button class="mini-btn" id="clearReportBtn">🗑️ 清空历史</button>
+      </div>
+      <div id="reportList"></div>
+    </div><div class="panel" data-panel="memo">
+      <div class="panel-note">定时弹窗提醒自己摸鱼也不忘正事 ⏰ （仅当本页面打开时生效）</div>
+      <div class="memo-presets">
+        <div class="memo-preset" data-text="站起来活动一下">🧍 站 30s</div>
+        <div class="memo-preset" data-text="喝口水">💧 喝水</div>
+        <div class="memo-preset" data-text="远眺放松眼睛">👁️ 远眺 1 分钟</div>
+        <div class="memo-preset" data-text="摸 5 分钟鱼">🐟 摸 5min</div>
+        <div class="memo-preset" data-text="检查一下邮箱">📧 查邮件</div>
+        <div class="memo-preset" data-text="刷两分钟新闻">📰 刷新闻</div>
+      </div>
+      <div class="memo-add">
+        <input type="time" id="memoTime">
+        <input type="text" id="memoText" placeholder="写点提醒...">
+        <button id="addMemoBtn">+ 添加</button>
+      </div>
+      <div class="memo-list" id="memoList"></div>
+      <div class="foot" style="margin-top:6px">到点时右下角会弹提醒 toast ✅</div>
+    </div>
+
+    <div class="panel" data-panel="petdex">
+      <div class="section-head" style="margin-top:6px">
+        <h3>🐾 搭子图鉴</h3>
+        <span class="tag"><span id="petDexCount">已收集 1/18 · 点已解锁的可切换出战</span></span>
+      </div>
+      <div class="pet-dex" id="petDex"></div>
+    </div>
+  </div><!-- /摸鱼小游戏 card -->
+
+</div><!-- /page.play -->
+
+</div><!-- /app -->
+
+<div class="modal" id="modal" hidden>
+  <div class="sheet">
+    <h2>⚙️ 设置</h2>
+    <p class="tip">数据用密码加密存在本机，忘了密码就得重置哦</p>
+    <div class="secret-row">
+      <div class="lock" id="encLock">🔓</div>
+      <span id="encStatus">未加密（建议加密保护隐私）</span>
+    </div>
+    <div class="field" style="border-bottom:none;flex-direction:column;align-items:stretch;gap:8px">
+      <label style="font-size:12px;color:var(--dim);font-weight:normal">密码（留空=不改；首次需设≥4位）</label>
+      <div style="display:flex;gap:6px">
+        <input type="password" placeholder="密码" id="pwdInput" style="flex:1;text-align:left;width:auto">
+        <input type="password" placeholder="确认" id="pwdInput2" style="flex:1;text-align:left;width:auto">
+      </div>
+    </div>
+    <div class="field"><label>月薪（元）</label><input type="number" id="cfgSalary" min="0" step="100"></div>
+    <div class="field"><label>每年涨幅 %</label><input type="number" id="cfgRaise" min="0" max="50" step="0.5"></div>
+    <div class="field"><label>每月工作日</label><input type="number" id="cfgDays" min="1" max="31" step="0.5"></div>
+    <div class="field"><label>上班时间</label><input type="time" id="cfgStart"></div>
+    <div class="field"><label>下班时间</label><input type="time" id="cfgEnd"></div>
+    <div class="field"><label>有午休</label><input type="checkbox" id="cfgLunch"></div>
+    <div class="field"><label>午休开始</label><input type="time" id="cfgLunchStart"></div>
+    <div class="field"><label>午休结束</label><input type="time" id="cfgLunchEnd"></div>
+    <div class="field"><label>允许加班（无薪）</label><input type="checkbox" id="cfgOT"></div>
+    <div class="field"><label>发薪日 (日)</label><input type="number" id="cfgPayday" min="1" max="31" step="1"></div>
+    <div class="field" style="border-bottom:none;flex-direction:column;align-items:stretch;gap:8px">
+      <label style="font-size:12px;color:var(--dim);font-weight:normal">主题</label>
+      <div style="display:flex;gap:8px">
+        <button class="theme-btn" data-theme="default">🌙 默认</button>
+        <button class="theme-btn" data-theme="struggle">🔥 奋斗</button>
+        <button class="theme-btn" data-theme="fish">🌿 摸鱼</button>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="closeBtn">取消</button>
+      <button class="btn primary" id="saveBtn">保存</button>
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn danger" id="resetBtn">⚠️ 重置所有数据</button>
+    </div>
+  </div>
+</div>
+<div class="modal pwd-modal" id="peekModal" hidden>
+  <div class="sheet">
+    <h2>👁️ 偷看一下？</h2>
+    <p class="tip" id="peekDesc">输入密码解锁 5 秒偷看权限</p>
+    <input type="password" class="pwd-input" id="peekPwd" placeholder="密码">
+    <div class="actions">
+      <button class="btn ghost" id="peekCancel">取消</button>
+      <button class="btn primary" id="peekGo">偷看！</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+(function(){
+'use strict';
+
+/* ========== 加密层 ========== */
+var CFG_KEY='brick.cfg.enc.v1';
+var FUN_KEY='brick.fun.v3';
+var REPORTS_KEY='brick.reports.v1';
+var MEMOS_KEY='brick.memos.v1';
+var LOGS_KEY='brick.logs.v1';
+
+function toBytes(s){return new TextEncoder().encode(s)}
+function fromBytes(b){return new TextDecoder().decode(b)}
+function b64encode(b){var o='';for(var i=0;i<b.length;i++)o+=String.fromCharCode(b[i]);return btoa(o)}
+function b64decode(s){var d=atob(s),o=new Uint8Array(d.length);for(var i=0;i<d.length;i++)o[i]=d.charCodeAt(i);return o}
+function randBytes(n){var a=new Uint8Array(n);crypto.getRandomValues(a);return a}
+async function deriveKey(pwd,salt){
+  var base=await crypto.subtle.importKey('raw',toBytes(pwd),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:15000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function encJSON(obj,pwd){
+  var salt=randBytes(16),iv=randBytes(12);
+  var key=await deriveKey(pwd,salt);
+  var ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},key,toBytes(JSON.stringify(obj))));
+  return {salt:b64encode(salt),iv:b64encode(iv),ct:b64encode(ct),v:1};
+}
+async function decJSON(payload,pwd){
+  try{var salt=b64decode(payload.salt),iv=b64decode(payload.iv),key=await deriveKey(pwd,salt);
+    return JSON.parse(fromBytes(await crypto.subtle.decrypt({name:'AES-GCM',iv:iv},key,b64decode(payload.ct))))}catch(e){return null}
+}
+
+/* ========== 默认值 ========== */
+var DEFAULTS={salary:12000,raisePct:5,workDays:21.75,start:'09:00',end:'18:00',useLunch:true,lunchStart:'12:00',lunchEnd:'13:00',otEnabled:true,payday:10,theme:'default'};
+var FUN_DEFAULTS={
+  coins:0,petHp:60,petName:'摸鱼君',petEmoji:'🐟',petCount:0,
+  achievements:[],streakDays:0,lastWorkDate:null,clickCount:0,dailyClickUsed:0,clickDailyDate:null,clickCooldownUntil:0,
+  otEarned:0,peekCount:0,peekFirst:0,
+  stockHolds:0,stockAvgCost:0,stockPrice:10,stockHistory:[],stockRealMode:false,stockTicker:'',stockName:'🐟 摸鱼科技',stockCoinCost:0,stockYuanCost:0,
+  stockHoldsMap:{}, /* 按 ticker 分开存持仓：{ [ticker]:{shares,coinCost,avgCost,price,history,name,realMode} } */
+  stockCurrentTicker:'',
+  freeEndOffset:0,buffs:{},totalEarned:0,bank:0,bankTs:0,milestones:[],diceStreak:0,
+  wheelJackpot:80,slotJackpot:300,slotFree:0,lastSpendDate:null,
+  petDex:['fish'],petOwned:['fish'],petId:'fish',petFeedAt:0,
+  petLv:1,petExp:0,expNeed:300
+};
+
+/* ========== 工具 ========== */
+function toMin(t){var p=String(t||'0:0').split(':');return(Number(p[0])||0)*60+(Number(p[1])||0)}
+function todayKey(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function dayKey(d){return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function fmtMoney(n){var s=n.toFixed(2),p=s.split('.');return p[0].replace(/\B(?=(\d{3})+(?!\d))/g,',')+'.'+p[1]}
+function fmtInt(n){return(Math.round(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+function hms(sec){sec=Math.max(0,Math.floor(sec));return[Math.floor(sec/3600),Math.floor(sec%3600/60),sec%60].map(function(v){return String(v).padStart(2,'0')}).join(':')}
+function hm(sec){sec=Math.max(0,Math.floor(sec));var h=Math.floor(sec/3600),m=Math.floor(sec%3600/60);return h>0?h+'h '+m+'m':m+'m'}
+
+/* ========== 状态 ========== */
+var state={cfg:null,fun:null,pwd:null,peeking:false,peekUntil:0,focusMode:false,soundOn:true};
+
+/* ========== 加密配置读写 ========== */
+function hasEncCfg(){try{return!!localStorage.getItem(CFG_KEY)}catch(e){return false}}
+function clearAll(){try{['brick.cfg.enc.v1','brick.fun.v3','brick.reports.v1','brick.memos.v1','brick.logs.v1','brick.marks.v1'].forEach(function(k){localStorage.removeItem(k)})}catch(e){}}
+async function saveCfg(cfg,pwd){state.pwd=pwd;localStorage.setItem(CFG_KEY,JSON.stringify(await encJSON(cfg,pwd)));state.cfg=cfg}
+async function loadCfg(pwd){try{var cfg=await decJSON(JSON.parse(localStorage.getItem(CFG_KEY)),pwd);if(cfg){state.cfg=Object.assign({},DEFAULTS,cfg);state.pwd=pwd;return true}}catch(e){}return false}
+
+/* ========== 明文存储 ========== */
+function loadFUN(){try{var s=JSON.parse(localStorage.getItem(FUN_KEY)||'{}');var f={};for(var k in FUN_DEFAULTS)f[k]=(k in s)?s[k]:JSON.parse(JSON.stringify(FUN_DEFAULTS[k]));if(!f.buffs)f.buffs={};if(!f.stockHistory)f.stockHistory=[];normalizePet&&normalizePet(f);migrateStockHolds(f);return f}catch(e){return JSON.parse(JSON.stringify(FUN_DEFAULTS))}}
+function migrateStockHolds(f){
+  /* 旧版单变量持仓 → 迁到 stockHoldsMap */
+  if(!f.stockHoldsMap)f.stockHoldsMap={};
+  var ticker=f.stockTicker||'';
+  if(!f.stockHoldsMap[ticker]){
+    f.stockHoldsMap[ticker]={
+      shares:f.stockHolds||0,
+      coinCost:f.stockCoinCost||0,
+      avgCost:f.stockAvgCost||0,
+      price:f.stockPrice||10,
+      history:f.stockHistory||[],
+      name:f.stockName||'🐟 摸鱼科技',
+      realMode:!!f.stockRealMode
+    };
+  }
+}
+function stockEntry(f,ticker){
+  if(ticker===undefined)ticker=f.stockTicker||'';
+  var m=f.stockHoldsMap;
+  if(!m[ticker]){
+    m[ticker]={shares:0,coinCost:0,avgCost:0,price:10,history:[],name:'',realMode:false};
+  }
+  return m[ticker];
+}
+function stockSwitchTo(f,newTicker){
+  /* 保存旧 ticker 的 price/history → 切换 → 恢复/初始化新 ticker */
+  var old=f.stockTicker||'';
+  if(old!==newTicker){
+    var oldE=stockEntry(f,old);
+    oldE.price=f.stockPrice;oldE.history=f.stockHistory;oldE.name=f.stockName;oldE.realMode=f.stockRealMode;
+    var newE=stockEntry(f,newTicker);
+    f.stockTicker=newTicker;
+    f.stockPrice=newE.price||10;
+    f.stockHistory=newE.history&&newE.history.length?newE.history:[];
+    f.stockName=newE.name||(newTicker?('股票 '+newTicker):'🐟 摸鱼科技');
+    f.stockRealMode=!!newE.realMode;
+    f.stockHolds=newE.shares;f.stockCoinCost=newE.coinCost;f.stockAvgCost=newE.avgCost;
+    return true;
+  }
+  return false;
+}
+function saveFUN(){try{localStorage.setItem(FUN_KEY,JSON.stringify(state.fun))}catch(e){}}
+function loadMarks(){try{var o=JSON.parse(localStorage.getItem('brick.marks.v1')||'{}');if(o.date===todayKey()&&Array.isArray(o.marks))return new Set(o.marks)}catch(e){}return new Set()}
+function saveMarks(s){try{localStorage.setItem('brick.marks.v1',JSON.stringify({date:todayKey(),marks:Array.from(s)}))}catch(e){}}
+
+/* ========== 每日日志（热力图用） ========== */
+function loadLogs(){try{return JSON.parse(localStorage.getItem(LOGS_KEY)||'{}')}catch(e){return{}}}
+function saveLogs(){try{localStorage.setItem(LOGS_KEY,JSON.stringify(state.dailyLogs))}catch(e){}}
+var dailyLogs=loadLogs(); // { '2024-01-01': { coins: 30, workSec: 3600 } }
+
+/* ========== 情绪 / 文案 ========== */
+var MOODS=[
+  {until:.05,emo:'🛌',lines:['回笼觉刚醒','灵魂还在梦里摸鱼','先开机再说']},
+  {until:.12,emo:'🌅',lines:['刚到工位先接水','咖啡续命中','新的一天，新的摸鱼']},
+  {until:.22,emo:'☕',lines:['咖啡是早上的续命水','手指在键盘心在周末','表面冷静内心数钱']},
+  {until:.33,emo:'🐟',lines:['摸鱼中但钱在涨','别问在思考人生','领导没来这波稳了','摸鱼才是第一生产力']},
+  {until:.42,emo:'🍚',lines:['干饭倒计时启动','外卖骑手是救星','肚子比脑子先下班']},
+  {until:.52,emo:'😵',lines:['午后困意上头','眼皮在剧烈斗争','靠意志维持坐姿']},
+  {until:.65,emo:'🚀',lines:['进度过半进入冲刺','再撑一下胜利在望','开始频繁看表']},
+  {until:.78,emo:'🏃',lines:['马上解放收包预备','椅子坐不住了','心已飞出办公室']},
+  {until:.92,emo:'🎒',lines:['包已背上等打卡','同事们都在看表','5 秒倒计时启动']},
+  {until:1.01,emo:'🎉',lines:['下班！胜利的一天','钱到手人自由','关电脑走人！','明天的事明天说']}
+];
+var OT_LINES=[
+  {emo:'🥲',t:'加班中',d:'家是远方工位是家'},{emo:'💪',t:'奋斗中',d:'每一秒都是真金白银'},
+  {emo:'☕',t:'续命中',d:'咖啡见底工资见底'},{emo:'🐺',t:'狼性时刻',d:'老板没走我也不能走'}
+];
+var EVENTS=[
+  {emo:'☕',t:'老板走了',d:'咖啡续杯中',coin:2},{emo:'🥤',t:'奶茶到了',d:'同事请的稳',coin:5},
+  {emo:'🐟',t:'摸鱼暗号',d:'领导巡视假装工作',coin:3},{emo:'✨',t:'今日幸运',d:'金币翻倍 buff',coin:8,buff:'double_coin'},
+  {emo:'📧',t:'零邮件日',d:'inbox 干净如新',coin:5},{emo:'🪙',t:'系统福利',d:'随机派奖',coin:4},
+  {emo:'🍀',t:'意外之财',d:'多领半天补贴',coin:7},{emo:'🔥',t:'周五啦',d:'还有几小时冲',coin:6},
+];
+var SOUP=[
+  '努力不一定成功，但不努力一定很舒服。',
+  '钱不是大风刮来的，但老板是。',
+  '加油，打工人！你的老板换了辆车。',
+  '今天也是元气满满的一天呢，元气不知道去哪了。',
+  '只要努力工作，老板就能过上更好的生活。',
+  '别灰心，人生就是这样起起落落落落落落的。',
+  '你以为你在摸鱼？鱼在摸你。',
+  '早起的鸟儿有虫吃，早起的虫儿被鸟吃。',
+  '打工是不可能打工的，这辈子都不可能，但班还是得加。',
+  '加班到凌晨的我，像极了凌晨还在写代码的 bug。',
+  '我不是懒，我只是电量低。',
+  '老板说我们是一家人，年终奖就别要了，一家人不说两家话。',
+  '生活不止眼前的苟且，还有远方和诗，以及还没还完的贷款。',
+  '只要够努力，老板的梦想就能实现。',
+  '成年人的崩溃是静音的，但金币到账的声音是叮咚的。'
+];
+
+/* ========== DOM ========== */
+var $=function(id){return document.getElementById(id)};
+var elDate=$('dateText'),elPill=$('pill'),elPillText=$('pillText');
+var elMoney=$('money'),elPerSec=$('perSec'),elDayPay=$('dayPay');
+var elAmountBox=$('amountBox'),elPeekBtn=$('peekBtn');
+var elBuff=$('buffBanner'),elBuffIc=$('buffIcon'),elBuffTxt=$('buffText'),elBuffLeft=$('buffLeft');
+var elCoin=$('coinCount');
+var elEmoji=$('emoji'),elQuip=$('quip');
+var elBar=$('barFill'),elPct=$('pct'),elLeft=$('leftText');
+var elCd=$('countdown'),elWorked=$('worked'),elRemainMoney=$('remainMoney');
+var elCard=$('mainCard'),elOtInfo=$('otInfo');
+var elPetEmoji=$('petEmoji'),elPetName=$('petName'),elPetMood=$('petMood'),elPetHp=$('petHp');
+
+/* ========== 音效 ========== */
+var audioCtx=null;
+function initAudio(){if(!state.soundOn)return null;if(!audioCtx){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx}
+function beep(freq,dur,type,vol){var ctx=initAudio();if(!ctx)return;var o=ctx.createOscillator(),g=ctx.createGain();o.type=type||'sine';o.frequency.value=freq;g.gain.setValueAtTime(vol||.1,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+dur);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+dur)}
+function sfxMilestone(){beep(660,.12,'triangle',.12);setTimeout(function(){beep(880,.2,'triangle',.12)},120);setTimeout(function(){beep(1320,.25,'triangle',.1)},260)}
+function sfxOffWork(){beep(523,.15,'sine',.15);setTimeout(function(){beep(659,.15,'sine',.15)},150);setTimeout(function(){beep(784,.15,'sine',.15)},300);setTimeout(function(){beep(1046,.35,'sine',.15)},450)}
+function sfxCoin(){beep(1200,.06,'square',.08);setTimeout(function(){beep(1600,.09,'square',.07)},50)}
+function sfxClick(){beep(880,.04,'square',.05)}
+
+/* ========== 彩带 & Toast ========== */
+var COLORS=['#ff6b9d','#ffd93d','#6bcb77','#4d96ff','#c780ff','#22d3ee'];
+function confetti(n){for(var i=0;i<n;i++)(function(){var p=document.createElement('div');p.className='confetti';p.style.left=(Math.random()*100)+'vw';p.style.background=COLORS[(Math.random()*COLORS.length)|0];p.style.animationDelay=(Math.random()*.35)+'s';p.style.setProperty('--x',(Math.random()*220-110)+'px');p.style.setProperty('--r',(Math.random()*900-450)+'deg');document.body.appendChild(p);setTimeout(function(){p.remove()},2900)})()}
+function flashCard(){elCard.classList.add('flash');setTimeout(function(){elCard.classList.remove('flash')},900)}
+function coinParticles(x,y,n){for(var i=0;i<n;i++)(function(){var p=document.createElement('div');p.className='coin-px';p.textContent=['🪙','💰','✨'][(Math.random()*3)|0];p.style.left=(x+(Math.random()*60-30))+'px';p.style.top=(y+(Math.random()*20-10))+'px';document.body.appendChild(p);setTimeout(function(){p.remove()},1100)})()}
+function showToast(emo,title,desc){var host=$('toastHost');var t=document.createElement('div');t.className='toast';t.innerHTML='<div class="t-emo">'+(emo||'💡')+'</div><div class="t-body"><div class="t-title"></div><div class="t-desc"></div></div>';t.querySelector('.t-title').textContent=title;t.querySelector('.t-desc').textContent=desc||'';host.appendChild(t);requestAnimationFrame(function(){t.classList.add('show')});setTimeout(function(){t.classList.remove('show');setTimeout(function(){t.remove()},420)},3500)}
+
+/* ========== 背景粒子 ========== */
+function initBgParticles(){var host=$('bgParticles');var items=['🪙','✨','💤','☕','🐟','💡','🎯','🍚','🚀','🔥','💰','🎲','📈'];for(var i=0;i<22;i++){var s=document.createElement('i');s.textContent=items[(Math.random()*items.length)|0];s.style.left=(Math.random()*100)+'%';s.style.animationDuration=(18+Math.random()*24)+'s';s.style.animationDelay=(-Math.random()*20)+'s';host.appendChild(s)}}
+
+/* ========== Peek ========== */
+function openPeek(){if(!state.pwd){showToast('💡','先去⚙️设置密码','设置后随时偷瞄');return}var m=$('peekModal');m.hidden=false;$('peekPwd').value='';setTimeout(function(){$('peekPwd').focus()},60)}
+function closePeek(){$('peekModal').hidden=true}
+async function tryPeek(){var p=$('peekPwd').value.trim();if(!p){alert('请输入密码');return}if(p===state.pwd){state.peeking=true;state.peekUntil=Date.now()+5000;state.fun.peekCount=(state.fun.peekCount||0)+1;saveFUN();closePeek();showToast('👁️','偷看成功','还剩 5 秒');unlockAch('peek10')}else{alert('密码不对')}}
+$('peekBtn').addEventListener('click',openPeek);$('peekCancel').addEventListener('click',closePeek);$('peekGo').addEventListener('click',tryPeek);$('peekPwd').addEventListener('keydown',function(e){if(e.key==='Enter')tryPeek()});
+$('peekModal').addEventListener('click',function(e){if(e.target===$('peekModal'))closePeek()});
+
+/* ========== 工作时段 ========== */
+function getSegments(cfg){var s=toMin(cfg.start),e=toMin(cfg.end);var segs=[[s,e]];if(cfg.useLunch){var ls=toMin(cfg.lunchStart),le=toMin(cfg.lunchEnd);if(ls>s&&le<e&&le>ls)segs=[[s,ls],[le,e]]}return segs.filter(function(p){return p[1]>p[0]}).map(function(p){return[p[0]*60,p[1]*60]})}
+
+/* ========== Buff 系统 ========== */
+function hasBuff(id){var exp=state.fun.buffs[id];if(exp&&Date.now()<exp)return Math.ceil((exp-Date.now())/1000);if(exp){delete state.fun.buffs[id];saveFUN()}return 0}
+function addBuff(id,sec,icon,txt){state.fun.buffs[id]=Date.now()+sec*1000;saveFUN();showToast(icon,'BUFF！',txt+' ('+sec+'s)');confetti(30)}
+function updateBuffBanner(){var now=Date.now(),active=null,leftSec=Infinity;var icons={double_coin:'🪙',early_leave:'🐟',late_morning:'🍺',double_ot:'🔥',lucky:'🍀'};var txts={double_coin:'金币 2x',early_leave:'下班提前',late_morning:'上午 +10min',double_ot:'加班 2x',lucky:'幸运时刻'};for(var id in state.fun.buffs){var e=state.fun.buffs[id];if(e>now){var ls=Math.ceil((e-now)/1000);if(ls<leftSec){leftSec=ls;active=id}}else{delete state.fun.buffs[id]}}saveFUN();if(active){elBuff.classList.remove('hidden');elBuffIc.textContent=icons[active]||'✨';elBuffTxt.textContent=txts[active]||active;elBuffLeft.textContent=leftSec+'s';document.querySelectorAll('.icon-btn').forEach(function(b){b.classList.add('buff-active')})}else{elBuff.classList.add('hidden');document.querySelectorAll('.icon-btn').forEach(function(b){b.classList.remove('buff-active')})}}
+
+/* ========== 金币统一入口（double_coin 自动翻倍） ========== */
+function gainCoins(n){
+  var f=state.fun;if(!f||!isFinite(n)||n<=0)return 0;
+  var mul=hasBuff('double_coin')?2:1;
+  var g=Math.round(n*mul);
+  f.coins+=g;
+  f.totalEarned=(f.totalEarned||0)+g;
+  saveFUN();elCoin.textContent=f.coins;
+  checkMilestones();checkAch();
+  /* 摸鱼收益也换成摸鱼经验：小钱不给经验，大额按比例给（封顶 20） */
+  if(g>=4)addExp(Math.min(20,Math.max(1,Math.round(g/10))));
+  return g;
+}
+function spendCoins(n){
+  var f=state.fun;if(!f||f.coins<n)return false;
+  f.coins-=n;saveFUN();elCoin.textContent=f.coins;return true;
+}
+function loseCoins(n){
+  var f=state.fun;if(!f||n<=0)return 0;
+  var real=Math.min(n,f.coins);
+  f.coins-=real;saveFUN();elCoin.textContent=f.coins;
+  return real;
+}
+
+/* ========== 里程碑（攒金币策略） ========== */
+var MILESTONES=[
+  {id:'m1',v:300,emo:'🥉',name:'小金库',desc:'记忆翻牌每次配对 +2 🪙'},
+  {id:'m2',v:1000,emo:'🥈',name:'理财新手',desc:'每日点金额上限 60 → 100 次'},
+  {id:'m3',v:3000,emo:'🥇',name:'储蓄达人',desc:'金库利率 2% → 3%/小时'},
+  {id:'m4',v:8000,emo:'💎',name:'摸鱼财阀',desc:'下班奖励 +30 → +80 🪙'}
+];
+function milestoneActive(id){return state.fun&&state.fun.milestones&&state.fun.milestones.indexOf(id)>=0}
+function checkMilestones(){
+  var f=state.fun;if(!f)return;
+  MILESTONES.forEach(function(m){
+    if((f.totalEarned||0)>=m.v&&f.milestones.indexOf(m.id)<0){
+      f.milestones.push(m.id);saveFUN();
+      showToast(m.emo,'里程碑达成：'+m.name,m.desc+' · 继续攒！');
+      confetti(60);sfxMilestone();
+    }
+  });
+}
+function renderMilestones(){
+  var host=$('milestoneList');if(!host)return;
+  var te=state.fun?(state.fun.totalEarned||0):0;
+  host.innerHTML=MILESTONES.map(function(m){
+    var done=state.fun.milestones.indexOf(m.id)>=0;
+    return '<div class="mile-row'+(done?' done':'')+'">'+
+      '<span class="m-emo">'+m.emo+'</span>'+
+      '<div class="m-name"><b>'+m.name+'</b><span class="m-desc">'+(done?'✅ '+m.desc:m.desc)+'</span></div>'+
+      '<div class="m-val">'+(done?'已解锁':('还差 '+(Math.max(0,m.v-te))+' 🪙'))+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+/* ========== 提前下班（同步设置里的下班时间） ========== */
+function minToTime(m){var h=Math.floor(m/60),mi=((m%60)+60)%60;return String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0')}
+function earlyLeave(sec){
+  var cfg=state.cfg,f=state.fun;if(!cfg)return;
+  var cur=toMin(cfg.end),st=toMin(cfg.start);
+  var next=Math.max(st+30,cur-Math.round(sec/60));
+  var realCut=cur-next;
+  if(realCut>0){
+    cfg.end=minToTime(next);
+    f.freeEndOffset=0;saveFUN();
+    if(state.pwd){saveCfg(cfg,state.pwd).catch(function(){})}
+    showToast('🐟','下班提前！','设置里下班时间已同步为 '+cfg.end+(state.pwd?' · 已加密保存':' · 设密码后可永久保存'));
+  }else{
+    showToast('🐟','已经够早啦','离上班时间太近，不能再提前了');
+  }
+}
+
+/* ========== 成就 ========== */
+var ACHIEVEMENTS=[
+  {id:'first_work',emo:'🎯',name:'第一次搬砖',desc:'完成一次完整工作日'},
+  {id:'streak3',emo:'🔥',name:'三连击',desc:'连续 3 天'},
+  {id:'streak7',emo:'⚡',name:'一周不划水',desc:'连续 7 天'},
+  {id:'coin100',emo:'🪙',name:'小钱钱',desc:'金币 100'},
+  {id:'coin1000',emo:'💰',name:'摸鱼大亨',desc:'金币 1000'},
+  {id:'click10',emo:'👆',name:'点帝',desc:'点金额 10 次'},
+  {id:'click100',emo:'🖐️',name:'手速达人',desc:'点金额 100 次'},
+  {id:'ot',emo:'🌙',name:'加班狗',desc:'第一次加班'},
+  {id:'slot_win',emo:'🎰',name:'手气王',desc:'老虎机中大奖'},
+  {id:'peek10',emo:'👁️',name:'偷窥者',desc:'偷看 10 次'},
+  {id:'stock_profit',emo:'📈',name:'股市新星',desc:'单次盈利超 50 🪙'},
+  {id:'all_pets',emo:'🐾',name:'收藏家',desc:'换 5 次宠物'},
+  {id:'heat_100',emo:'🌋',name:'劳模',desc:'热力图一天赚超 100'},
+  {id:'memo_master',emo:'⏰',name:'自律王',desc:'设置 5 条以上备忘'},
+  {id:'pet_lv_3',emo:'🐟',name:'摸鱼入门',desc:'摸鱼等级达到 Lv.3'},
+  {id:'pet_lv_5',emo:'🏆',name:'摸鱼高手',desc:'摸鱼等级达到 Lv.5'},
+  {id:'pet_lv_7',emo:'👑',name:'摸鱼传说',desc:'摸鱼等级达到 Lv.7'},
+];
+function unlockAch(id){if(state.fun.achievements.indexOf(id)>=0)return;state.fun.achievements.push(id);saveFUN();var a=ACHIEVEMENTS.find(function(x){return x.id===id});if(a){state.fun.coins+=50;$('achToastEmo').textContent=a.emo;$('achToastTitle').textContent='🏆 解锁：'+a.name;$('achToastDesc').textContent='+50 🪙 · '+a.desc;var t=$('achToast');t.hidden=false;requestAnimationFrame(function(){t.classList.add('show')});setTimeout(function(){t.classList.remove('show')},3000);setTimeout(function(){t.hidden=true},3400);sfxCoin()}}
+function checkAch(){var f=state.fun;if(f.streakDays>=3)unlockAch('streak3');if(f.streakDays>=7)unlockAch('streak7');if(f.coins>=100)unlockAch('coin100');if(f.coins>=1000)unlockAch('coin1000');if(f.clickCount>=10)unlockAch('click10');if(f.clickCount>=100)unlockAch('click100');if(f.peekCount>=10)unlockAch('peek10')}
+function el(id){return document.getElementById(id)}
+
+/* ========== 主渲染 ========== */
+function render(){
+  if(!state.cfg)return;
+  var now=new Date(),cfg=state.cfg,fun=state.fun;
+  var segs=getSegments(cfg);
+  if(!segs.length){elPillText.textContent='设置有问题';return}
+
+  if(state.peeking&&Date.now()>state.peekUntil){state.peeking=false}
+  elPeekBtn.classList.toggle('peeking',state.peeking);
+  elPeekBtn.textContent=state.peeking?'🙈':'👁️';
+  updateBuffBanner();
+
+  var total=segs.reduce(function(s,p){return s+(p[1]-p[0])},0);
+  var nowSec=now.getHours()*3600+now.getMinutes()*60+now.getSeconds()+now.getMilliseconds()/1000;
+  var startSec=segs[0][0];
+  var workEndSec=segs[segs.length-1][1];
+
+  if(hasBuff('late_morning'))total+=600;
+  if(fun.freeEndOffset>0){workEndSec=Math.max(startSec,workEndSec-fun.freeEndOffset);total-=fun.freeEndOffset;if(total<0)total=0}
+
+  var regularWorked=0;for(var i=0;i<segs.length;i++){var a=segs[i][0],b=segs[i][1];if(nowSec>a)regularWorked+=Math.min(nowSec,b)-a}
+  regularWorked=Math.min(regularWorked,total);
+
+  var otWorked=0,isOT=false;if(cfg.otEnabled&&nowSec>workEndSec&&nowSec<24*3600){otWorked=nowSec-workEndSec;isOT=true}
+  var elSec=regularWorked+otWorked;
+  var prog=total>0?Math.min(regularWorked/total,1):0;
+  var dayPay=cfg.salary/Math.max(1,cfg.workDays||21.75);
+  var hourly=total>0?dayPay/(total/3600):0;
+  var money=total>0?(regularWorked/total)*dayPay:0; /* 只有正常工时算钱，加班白干 */
+
+  var notStarted=nowSec<startSec;
+  var finished=!isOT&&regularWorked>=total*0.999;
+
+  /* pill */
+  elPill.className='pill';
+  if(isOT){elPillText.textContent='加班中';elPill.classList.add('ot')}
+  else if(notStarted){elPillText.textContent='还没开工';elPill.classList.add('off')}
+  else if(finished){elPillText.textContent='今日收工';elPill.classList.add('done')}
+  else{elPillText.textContent='搬砖中'}
+
+  /* 金额（默认掩码）*/
+  if(state.peeking){
+    elMoney.textContent=fmtMoney(Math.max(0,money));
+    elDayPay.textContent='¥'+fmtMoney(dayPay);
+    elRemainMoney.textContent='¥'+fmtMoney(Math.max(0,(1-regularWorked/total)*dayPay));
+  }else{
+    elMoney.textContent='****';elDayPay.textContent='****';elRemainMoney.textContent='****';
+  }
+
+  if(state.peeking){
+    var perSec=hourly/3600;
+    elPerSec.textContent=isOT?'¥0.0000（加班无薪）':'¥'+perSec.toFixed(4);
+  }else{
+    elPerSec.textContent='****'; // 加密：防反推日薪月薪
+  }
+
+  elCoin.textContent=fun.coins;
+
+  var barPct=(isOT?100:Math.min(100,prog*100));
+  elBar.style.width=barPct.toFixed(2)+'%';
+  elPct.textContent=Math.floor(prog*100)+(isOT?'+OT':'%');
+  if(isOT)elLeft.innerHTML='<span style="color:var(--pink)">加班中 · 不给钱 · 白干</span>';
+  else if(finished)elLeft.textContent='已下班，去生活吧';
+  else if(notStarted)elLeft.textContent='还没开始';
+  else elLeft.textContent='还剩 '+Math.floor((total-regularWorked)/3600)+'h'+Math.floor(((total-regularWorked)%3600)/60)+'m';
+
+  if(isOT){elCd.textContent='加班 '+hms(otWorked)}
+  else if(notStarted){elCd.textContent='未开工'}
+  else if(nowSec>=workEndSec){elCd.textContent='已下班'}
+  else elCd.textContent=hms(workEndSec-nowSec);
+  elWorked.textContent=hm(elSec);
+
+  if(isOT&&otWorked>60){
+    elOtInfo.classList.add('show');
+    elOtInfo.textContent='🌙 已加班 '+hm(otWorked)+' · 一分钱没有 · 老板说「年轻人要多吃苦」';
+  }
+  else elOtInfo.classList.remove('show');
+
+  /* 情绪（文案 15s 换一次，不再快速跳动） */
+  if(isOT){var oi=Math.floor(Date.now()/15000)%OT_LINES.length;var ol=OT_LINES[oi];elEmoji.textContent=ol.emo;elQuip.innerHTML='<b style="color:var(--pink)">'+ol.t+'</b> · '+ol.d}
+  else if(notStarted){elEmoji.textContent='🛌';elQuip.textContent='还没到上班时间，好好享受'}
+  else if(finished){elEmoji.textContent='🎉';elQuip.textContent='下班！今天也是胜利的一天，好兄嘚'}
+  else{var m=MOODS.find(function(x){return prog<x.until})||MOODS[MOODS.length-1];elEmoji.textContent=m.emo;elQuip.textContent=m.lines[Math.floor(Date.now()/15000)%m.lines.length]}
+
+  /* 宠物（主卡片上的摸鱼君，心情影响金币加成） */
+  renderPet(prog,isOT,regularWorked<total*0.1);
+
+  /* 日志（用于热力图）*/
+  var today=todayKey();
+  if(!dailyLogs[today])dailyLogs[today]={coins:0,workSec:0,money:0};
+  dailyLogs[today].coins=Math.max(dailyLogs[today].coins||0,fun.coins);
+  dailyLogs[today].workSec=Math.max(dailyLogs[today].workSec||0,Math.floor(elSec));
+  dailyLogs[today].money=state.peeking?money:Math.max(dailyLogs[today].money||0,Math.floor(money));
+  saveLogs();
+
+  /* 悬浮图标：进度环 + 金币 */
+  updateFloatHud(Math.floor(prog*100),fun.coins);
+
+  /* 里程碑 */
+  var marks=loadMarks();
+  [0.25,0.5,0.75].forEach(function(mk){if(prog>=mk-1e-9&&!marks.has(mk)){marks.add(mk);saveMarks(marks);confetti(45);flashCard();sfxMilestone()}});
+  if(finished&&!marks.has(1)){
+    marks.add(1);saveMarks(marks);
+    gainCoins(milestoneActive('m4')?80:30);sfxOffWork();confetti(140);flashCard();
+    showToast('🎉','下班快乐！','+'+(milestoneActive('m4')?80:30)+' 🪙');
+    unlockAch('first_work');
+    if(dailyLogs[today].coins>100)unlockAch('heat_100');
+    // streak
+    var pd=fun.lastWorkDate;
+    fun.streakDays=1;
+    if(pd){var diff=Math.round((new Date(today+'T00:00:00')-new Date(pd+'T00:00:00'))/86400000);if(diff===1||Math.abs(diff)<=2)fun.streakDays=(fun.streakDays||0)+1}
+    fun.lastWorkDate=today;saveFUN();checkAch();
+    // 生成日报
+    generateDailyReport();
+  }
+}
+
+/* ========== 摸鱼搭子：图鉴 / 心情 / 喂食 ========== */
+var PETS=[
+  {id:'fish',emo:'🐟',name:'摸鱼君',rare:1},
+  {id:'cat',emo:'🐱',name:'躺平猫',rare:1},
+  {id:'dog',emo:'🐶',name:'摸鱼狗',rare:1},
+  {id:'ham',emo:'🐹',name:'仓鼠',rare:2},
+  {id:'frog',emo:'🐸',name:'摸鱼蛙',rare:2},
+  {id:'chick',emo:'🐤',name:'小鸡',rare:2},
+  {id:'mouse',emo:'🐭',name:'偷粮鼠',rare:2},
+  {id:'cow',emo:'🐮',name:'混日子牛',rare:2},
+  {id:'turtle',emo:'🐢',name:'摸鱼龟',rare:3},
+  {id:'fox',emo:'🦊',name:'摸鱼狐',rare:3},
+  {id:'rabbit',emo:'🐰',name:'蹦跶兔',rare:3},
+  {id:'owl',emo:'🦉',name:'夜猫子',rare:3},
+  {id:'panda',emo:'🐼',name:'摸鱼熊',rare:4},
+  {id:'pig',emo:'🐷',name:'打工猪',rare:4},
+  {id:'koala',emo:'🐨',name:'瞌睡考拉',rare:4},
+  {id:'unicorn',emo:'🦄',name:'摸鱼兽',rare:5},
+  {id:'dragon',emo:'🐲',name:'摸鱼龙',rare:5},
+  {id:'phoenix',emo:'🔥',name:'加班凤凰',rare:5}
+];
+function petById(id){for(var i=0;i<PETS.length;i++)if(PETS[i].id===id)return PETS[i];return null}
+function petStars(n){return '★★★★★'.slice(0,n)}
+function normalizePet(f){
+  if(!f)return;
+  if(!Array.isArray(f.petDex))f.petDex=[];
+  if(!Array.isArray(f.petOwned))f.petOwned=[];
+  if(!f.petId&&f.petEmoji){var hit=PETS.filter(function(p){return p.emo===f.petEmoji})[0];f.petId=hit?hit.id:null}
+  if(f.petId&&f.petOwned.indexOf(f.petId)<0)f.petOwned.push(f.petId);
+  if(f.petId&&f.petDex.indexOf(f.petId)<0)f.petDex.push(f.petId);
+  var cur=petById(f.petId);
+  if(cur){f.petEmoji=cur.emo;f.petName=cur.name}
+  if(!f.petDex.length)f.petDex.push('fish');
+  // 摸鱼等级字段补全
+  if(!f.petLv||f.petLv<1)f.petLv=1;
+  if(f.petLv>LV_MAX)f.petLv=LV_MAX;
+  if(f.petExp==null||f.petExp<0)f.petExp=0;
+  f.expNeed=expNeedFor(f.petLv);
+  // 旧存档经验溢出：自动补升级
+  while(f.petLv<LV_MAX&&f.petExp>=f.expNeed){
+    f.petExp-=f.expNeed;f.petLv++;f.expNeed=expNeedFor(f.petLv);
+  }
+  if(f.petLv>=LV_MAX)f.petExp=Math.min(f.petExp,f.expNeed-1);
+}
+/* 摸鱼等级系统：经验升级，心情越高经验加成越多，等级越高需求越陡 */
+var LV_NAMES=['摸鱼实习生','摸鱼学徒','摸鱼专员','摸鱼高手','摸鱼大师','摸鱼宗师','传说摸鱼人','摸鱼之神'];
+var LV_MAX=LV_NAMES.length;
+var LV_BASE_EXP=300,LV_GROWTH=1.65;
+function expNeedFor(lv){lv=Math.max(1,lv);return Math.round(LV_BASE_EXP*Math.pow(LV_GROWTH,lv-1))}
+/* 心情 → 经验倍率：心情越好，摸鱼经验涨得越快 */
+function moodExpMult(hp){
+  hp=Math.max(0,Math.min(100,Number(hp)||0));
+  if(hp>=85)return 1.6;
+  if(hp>=65)return 1.35;
+  if(hp>=45)return 1.15;
+  if(hp>=25)return 0.9;
+  if(hp>=10)return 0.6;
+  return 0.35;
+}
+function fmtMult(m){return ('×'+m.toFixed(2)).replace(/0$/,'').replace(/\.$/,'')}
+function addExp(n){
+  var f=state.fun;if(!f)return;
+  n=Number(n)||0;if(n<=0)return;
+  normalizePet(f);
+  var gain=Math.max(1,Math.round(n*moodExpMult(f.petHp)));
+  f.petExp+=gain;
+  var levels=0;
+  while(f.petLv<LV_MAX&&f.petExp>=f.expNeed){
+    f.petExp-=f.expNeed;
+    f.petLv++;
+    f.expNeed=expNeedFor(f.petLv);
+    levels++;
+  }
+  if(f.petLv>=LV_MAX)f.petExp=Math.min(f.petExp,f.expNeed-1);
+  if(levels>0){
+    var newName=LV_NAMES[f.petLv-1];
+    showToast('🎉','升级成功','Lv.'+f.petLv+' '+newName+' · 下一级需要 '+expNeedFor(f.petLv)+' 经验');
+    unlockAch('pet_lv_'+f.petLv);
+    var card=$('lvCard');if(card){card.classList.remove('lvup');void card.offsetWidth;card.classList.add('lvup')}
+    sfxMilestone&&sfxMilestone();
+  }
+  saveFUN();
+  renderPetLvUI();
+}
+function renderPetLvUI(){
+  var f=state.fun;if(!f)return;
+  normalizePet(f);
+  var lv=Math.min(f.petLv,LV_MAX);
+  var lvName=LV_NAMES[lv-1];
+  var need=expNeedFor(lv);
+  var exp=Math.floor(f.petExp||0);
+  var pct=Math.min(100,exp/need*100);
+  var maxed=lv>=LV_MAX;
+  var badge=$('lvBadge');if(badge)badge.textContent='Lv.'+lv;
+  var title=$('lvTitle');if(title)title.textContent=lvName;
+  var needEl=$('lvNeed');if(needEl)needEl.textContent=maxed?'已满级 · 摸鱼界的天花板':'距下一级还差 '+Math.max(0,need-exp)+' 经验';
+  var fill=$('lvFill');if(fill)fill.style.width=pct+'%';
+  var lvExp=$('lvExpTxt');if(lvExp)lvExp.textContent=exp+' / '+need+' 经验';
+  var nextEl=$('lvNext');if(nextEl)nextEl.textContent=maxed?'已达最高等级 · 摸鱼之神':'下一级：Lv.'+(lv+1)+' '+LV_NAMES[lv];
+  var moodEl=$('lvMoodBonus');if(moodEl)moodEl.textContent='心情加成 '+fmtMult(moodExpMult(f.petHp));
+}
+function petMoodText(hp){
+  if(hp>80)return '心情极佳';
+  if(hp>50)return '状态不错';
+  if(hp>25)return '有点饿';
+  return '饿晕了 QAQ';
+}
+function updatePetPanel(){
+  var f=state.fun;if(!f)return;
+  var p=petById(f.petId),hp=p?Math.max(0,Math.min(100,f.petHp)):0;
+  var be=$('petBigEmo');
+  if(!be){$('petDexCount')&&($('petDexCount').textContent=(f.petDex||[]).length+'/'+PETS.length);return}
+  be.textContent=p?p.emo:'🕳️';
+  $('petBigName').textContent=p?(p.name+'  '+petStars(p.rare)):'搭子离家出走了';
+  $('petBigMood').textContent=p?('心情 '+Math.round(hp)+'/100 · '+petMoodText(hp)):'心情 0/100 · 去商店重新领养';
+  $('petBigBar').style.width=hp+'%';
+  $('petDexCount').textContent=(f.petDex||[]).length+'/'+PETS.length;
+}
+function renderPetDex(){
+  var f=state.fun;if(!f||!$('petDex'))return;
+  normalizePet(f);
+  $('petDex').innerHTML=PETS.map(function(p){
+    var got=f.petOwned.indexOf(p.id)>=0;
+    var seen=(f.petDex||[]).indexOf(p.id)>=0;
+    var cls='pd'+(seen?' owned':' locked')+(f.petId===p.id?' current':'')+(seen&&!got?' gone':'');
+    return '<div class="'+cls+'" data-pet="'+p.id+'">'+
+      '<span class="pd-emo">'+(seen?p.emo:'❔')+'</span>'+
+      '<span class="pd-name">'+(seen?p.name:'未解锁')+'</span>'+
+      '<span class="pd-star">'+petStars(p.rare)+'</span></div>';
+  }).join('');
+  // 第一页简化图鉴（6 列紧凑版）
+  var homeDex=$('petDexHome');
+  if(homeDex){
+    homeDex.innerHTML=PETS.map(function(p){
+      var got=f.petOwned.indexOf(p.id)>=0;
+      var seen=(f.petDex||[]).indexOf(p.id)>=0;
+      var cls='pd'+(seen?' owned':' locked')+(f.petId===p.id?' current':'')+(seen&&!got?' gone':'');
+      return '<div class="'+cls+'" data-pet="'+p.id+'" title="'+(seen?p.name+' '+petStars(p.rare):'未解锁')+'">'+
+        '<span class="pd-emo">'+(seen?p.emo:'❔')+'</span></div>';
+    }).join('');
+  }
+  var homeCnt=$('petDexHomeCount');if(homeCnt)homeCnt.textContent=(f.petDex||[]).length+'/'+PETS.length;
+  updatePetPanel();
+}
+function renderPet(prog,isOT,sleepy){
+  var f=state.fun;if(!f)return;
+  normalizePet(f);
+  var p=petById(f.petId),hp=p?Math.max(0,Math.min(100,f.petHp)):0,mood='';
+  if(p){
+    mood=petMoodText(hp);
+    if(isOT)mood='它也在等你下班…';
+    else if(prog<0.1)mood='刚起床还懵';
+    else if(prog>=0.85)mood='预备冲';
+    elPetEmoji.textContent=p.emo;
+    elPetName.textContent=p.name+' '+petStars(p.rare);
+    elPetMood.textContent=mood;
+    if(hp<30)elPetEmoji.classList.add('sleepy');else elPetEmoji.classList.remove('sleepy');
+  }else{
+    elPetEmoji.textContent='🕳️';
+    elPetName.textContent='搭子离家出走了';
+    elPetMood.textContent='去商店重新领养一只';
+    elPetEmoji.classList.remove('sleepy');
+  }
+  elPetHp.style.width=hp+'%';
+  // 第一页 hp 文本
+  var hpTxt=$('petHpTxt');if(hpTxt)hpTxt.textContent=Math.round(hp)+'/100';
+  renderPetLvUI();
+  updatePetPanel();
+}
+function petAct(cost,inc,label,cb,expGain){
+  var f=state.fun;
+  if(!petById(f.petId)){showToast('🐾','还没有搭子','去商店「领养搭子」先请回来');return}
+  if(cost>0&&!spendCoins(cost)){showToast('🪙','金币不够',label+' 需要 '+cost+' 🪙');return}
+  f.petHp=Math.min(100,(f.petHp||0)+inc);
+  saveFUN();renderPet();renderPetDex();
+  elPetEmoji.classList.remove('happy');void elPetEmoji.offsetWidth;elPetEmoji.classList.add('happy');
+  var big=document.getElementById('petBigEmo');
+  if(big){big.classList.remove('happy');void big.offsetWidth;big.classList.add('happy')}
+  showToast('🐾',label+' 成功',(cost>0?('-'+cost+' 🪙 · '):'')+'心情 +'+inc+(expGain?' · 经验 +'+expGain:''));
+  if(expGain&&expGain>0)addExp(expGain);
+  if(cb)cb();
+}
+function petLeave(){
+  var f=state.fun,p=petById(f.petId);
+  if(!f.petId)return;
+  f.petOwned=(f.petOwned||[]).filter(function(x){return x!==f.petId});
+  f.petId=null;f.petEmoji='';f.petName='';f.petHp=0;
+  saveFUN();renderPet();renderPetDex();
+  showToast('🏃',(p?p.name:'搭子')+'饿跑了','心情归零离家出走 · 图鉴里仍留档');
+}
+function adoptPet(){
+  var f=state.fun;normalizePet(f);
+  var unowned=PETS.filter(function(p){return f.petOwned.indexOf(p.id)<0});
+  var p=unowned.length?unowned[(Math.random()*unowned.length)|0]:PETS[(Math.random()*PETS.length)|0];
+  if(f.petOwned.indexOf(p.id)<0)f.petOwned.push(p.id);
+  if(f.petDex.indexOf(p.id)<0)f.petDex.push(p.id);
+  f.petId=p.id;f.petEmoji=p.emo;f.petName=p.name;
+  f.petHp=Math.max(60,f.petHp||0);
+  f.petCount=(f.petCount||0)+1;
+  saveFUN();renderPet();renderPetDex();
+  if(f.petCount>=5)unlockAch('all_pets');
+  return {pet:p,fresh:unowned.length>0};
+}
+if($('petFeed'))$('petFeed').addEventListener('click',function(){petAct(12,22,'喂食')});
+if($('petPlay'))$('petPlay').addEventListener('click',function(){petAct(30,38,'陪玩')});
+if($('petTouch'))$('petTouch').addEventListener('click',function(){
+  var f=state.fun,now=Date.now();
+  if(now-(f.petFeedAt||0)<60000){showToast('✋','摸太频繁了',Math.ceil((60000-(now-f.petFeedAt))/1000)+' 秒后再摸');return}
+  f.petFeedAt=now;
+  petAct(0,6,'抚摸');
+});
+$('petDex').addEventListener('click',function(e){
+  var el=e.target.closest('[data-pet]');if(!el)return;
+  var f=state.fun,id=el.dataset.pet,p=petById(id);
+  if(!p||f.petOwned.indexOf(id)<0){showToast('🔒','这只不在家',p?('去商店花 200 🪙 领养，随机接回一只搭子（'+p.name+' 也可能会回来）'):'先领养一只搭子');return}
+  if(f.petId===id){showToast('🐾','已经在岗',p.name+' 正在陪你摸鱼');return}
+  f.petId=id;f.petEmoji=p.emo;f.petName=p.name;
+  saveFUN();renderPet();renderPetDex();
+  showToast('🔁','换搭子成功',p.name+' 已上岗');
+});
+
+/* ========== Tab 切换 ========== */
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    var pan=document.querySelector('.panel[data-panel="'+t.dataset.tab+'"]');
+    if(pan)pan.classList.add('active');
+    if(t.dataset.tab==='report')renderReports();
+    if(t.dataset.tab==='memo')renderMemos();
+    if(t.dataset.tab==='stock'){updateStockChart();if(!state.fun.stockRealMode)simulateStockTick()}
+    if(t.dataset.tab==='mole')buildMoleGrid();
+    if(t.dataset.tab==='bank')renderBank();
+    if(t.dataset.tab==='shop')renderShop();
+    if(t.dataset.tab==='wheel')updateWheelHud();
+    if(t.dataset.tab==='pet'){renderPet();renderPetDex()}
+  });
+});
+
+/* ========== 点金额赚金币 ========== */
+elAmountBox.addEventListener('click',function(e){
+  if(!state.cfg)return;
+  var now=Date.now(),f=state.fun;
+  if(f.clickCooldownUntil>now)return;
+  var t=todayKey();if(f.clickDailyDate!==t){f.clickDailyDate=t;f.dailyClickUsed=0}
+  if(f.dailyClickUsed>=(milestoneActive('m2')?100:60)){showToast('💤','今天点够啦','明天再来摸');return}
+  var gain=1+Math.floor(Math.random()*4);
+  if(f.petHp>70)gain+=1;
+  var dc=hasBuff('double_coin');
+  gainCoins(gain);f.dailyClickUsed++;
+  f.clickCount=(f.clickCount||0)+1;
+  f.clickCooldownUntil=now+500;
+  f.petHp=Math.max(0,f.petHp-0.3);
+  saveFUN();
+  addExp(1);
+  elAmountBox.classList.remove('bounce');void elAmountBox.offsetWidth;elAmountBox.classList.add('bounce');
+  sfxClick();sfxCoin();coinParticles(e.clientX,e.clientY,dc?10:6);checkAch()
+});
+
+/* ========== 主界面搭子：点一下喂食 ========== */
+$('petRow').addEventListener('click',function(){petAct(12,22,'喂食')});
+
+/* ========== 随机事件 ========== */
+setInterval(function(){
+  if(!state.cfg)return;
+  var cfg=state.cfg,segs=getSegments(cfg);
+  var ns=(new Date()).getHours()*3600+(new Date()).getMinutes()*60;
+  var s0=segs[0][0],e0=segs[segs.length-1][1];
+  if(ns<s0||ns>e0)return;
+  if(Math.random()<0.12){
+    var ev=EVENTS[(Math.random()*EVENTS.length)|0];
+    gainCoins(ev.coin);
+    showToast(ev.emo,ev.t,ev.d+' · +'+ev.coin+'🪙');sfxClick();
+    if(ev.buff==='double_coin')addBuff('double_coin',60,'🪙','系统赠送双倍金币');
+  }
+},35000);
+
+/* ========== 股票（A股 · 东方财富） ========== */
+function aStockSecid(code){return(code.charAt(0)==='6'?'1.':'0.')+code}
+async function fetchAStock(code){
+  var secid=aStockSecid(code);
+  var qUrl='https://push2.eastmoney.com/api/qt/stock/get?secid='+secid+'&fields=f43,f57,f58,f59,f60,f169,f170';
+  var kUrl='https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&klt=101&fqt=1&lmt=120&end=20500101&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57';
+  var r=await fetch(qUrl,{mode:'cors'});if(!r.ok)throw new Error('quote fail');
+  var q=await r.json();
+  if(!q||!q.data||!q.data.f58)throw new Error('bad code');
+  var name=q.data.f58;
+  var dec=(q.data.f59!=null)?q.data.f59:2;
+  var price=q.data.f43/Math.pow(10,dec);
+  var preClose=q.data.f60/Math.pow(10,dec);
+  var closes=[];
+  try{
+    var r2=await fetch(kUrl,{mode:'cors'});
+    if(r2.ok){
+      var k=await r2.json();
+      if(k&&k.data&&k.data.klines){
+        closes=k.data.klines.map(function(l){return parseFloat(l.split(',')[2])}).filter(function(x){return isFinite(x)});
+      }
+    }
+  }catch(e2){}
+  if(closes.length<2)closes=[preClose,price];
+  return {name:name,price:price,preClose:preClose,closes:closes};
+}
+var stockUpdateTimer=null;
+async function pullRealStock(){
+  var raw=$('stockTicker').value.trim();
+  if(!/^\d{6}$/.test(raw)){showToast('❓','请输入 6 位 A 股代码','如 600519 / 000001 / 300750');return}
+  showToast('📡','拉取 A 股行情中',raw+' · 稍等…');
+  try{
+    var s=await fetchAStock(raw);
+    var f=state.fun;
+    /* 保存/切换 ticker —— 每个 ticker 各自独立持仓和价格历史 */
+    stockSwitchTo(f,raw);
+    var e=stockEntry(f,raw);
+    e.realMode=true;e.name=s.name;e.price=s.price;e.history=s.closes;
+    /* 同步到当前全局字段（renderStock 用这些） */
+    f.stockRealMode=true;f.stockName=s.name;f.stockPrice=s.price;f.stockHistory=s.closes;
+    f.stockHolds=e.shares;f.stockCoinCost=e.coinCost;f.stockAvgCost=e.avgCost;
+    saveFUN();
+    $('stockStatus').textContent='✅ A股实时 · '+s.name+' ('+raw+') · 每 1min 刷新';
+    $('stockStatus').className='stock-status online';
+    renderStock();updateStockChart();
+    if(stockUpdateTimer)clearInterval(stockUpdateTimer);
+    stockUpdateTimer=setInterval(function(){pullRealStock()},60*1000);
+  }catch(e){
+    showToast('😵','拉取失败','网络问题或代码无效 · 已切回模拟');
+    state.fun.stockRealMode=false;saveFUN();renderStock();
+  }
+}
+function tickStock(){
+  var f=state.fun;
+  if(f.stockRealMode)return; /* 实时模式：只按 60s 拉取真实行情，不再本地微扰造假 */
+  var change=(Math.random()-0.48)*Math.max(0.5,f.stockPrice*0.02);
+  f.stockPrice=Math.max(0.01,f.stockPrice+change);
+  f.stockHistory.push(f.stockPrice);
+  if(f.stockHistory.length>120)f.stockHistory.shift();
+  /* 同步更新 entry */
+  var e=stockEntry(f);
+  e.price=f.stockPrice;e.history=f.stockHistory;
+  saveFUN();renderStock();updateStockChart();
+}
+setInterval(function(){
+  if(!state.fun)return;
+  tickStock();
+},1800);
+
+function renderStock(){
+  var f=state.fun,e=stockEntry(f),chgPct=0;
+  /* 确保全局字段和当前 entry 同步 */
+  f.stockHolds=e.shares;f.stockCoinCost=e.coinCost;f.stockAvgCost=e.avgCost;
+  f.stockPrice=e.price||10;f.stockHistory=e.history&&e.history.length?e.history:[];
+  f.stockName=e.name||(f.stockTicker?('股票 '+f.stockTicker):'🐟 摸鱼科技');
+  f.stockRealMode=!!e.realMode;
+  $('stockName').textContent=f.stockName+(f.stockRealMode?' 🔴':' 🎲 模拟');
+  if(f.stockHistory.length>1){var prev=f.stockHistory[f.stockHistory.length-2];if(prev>0)chgPct=(f.stockPrice-prev)/prev*100}
+  var sp=$('stockPrice'),sc=$('stockChg');
+  sp.textContent='¥'+f.stockPrice.toFixed(2);sp.className='stock-price '+(chgPct>=0?'up':'down');
+  sc.textContent=(chgPct>=0?'+':'')+chgPct.toFixed(2)+'%';sc.className='stock-chg '+(chgPct>=0?'up':'down');
+  $('stockHolds').textContent=e.shares;
+  var avg=e.shares>0?(e.coinCost/e.shares):0;
+  $('stockAvg').textContent='¥'+avg.toFixed(2);
+  $('stockVal').textContent='¥'+(e.shares*Math.max(1,Math.floor(f.stockPrice))).toFixed(2);
+  $('buyBtn').textContent='买入 ('+stockBuyCost(f)+'🪙)';
+  /* 显示总持仓市值（所有 ticker 加起来） */
+  var totalVal=0,totalShares=0;
+  for(var k in f.stockHoldsMap){var ee=f.stockHoldsMap[k];if(ee.shares>0){totalVal+=ee.shares*Math.max(1,Math.floor(ee.price||10));totalShares+=ee.shares}}
+  if(totalShares>e.shares){
+    $('stockVal').textContent='¥'+(e.shares*Math.max(1,Math.floor(f.stockPrice))).toFixed(2)+'（总持仓 '+totalShares+' 股 ¥'+totalVal.toFixed(0)+'）';
+  }
+  if(f.stockRealMode){$('stockStatus').textContent='✅ A股实时 · '+f.stockTicker+' · 每 1min 刷新';$('stockStatus').className='stock-status online'}
+  else{$('stockStatus').textContent='💡 模拟数据 · 输入 6 位 A 股代码拉实时行情（切换股票互不影响持仓）';$('stockStatus').className='stock-status offline'}
+}
+function updateStockChart(){
+  var f=state.fun,hist=f.stockHistory;
+  if(hist.length<2){renderStock();return}
+  var W=300,H=60;
+  var mn=Math.min.apply(null,hist),mx=Math.max.apply(null,hist);
+  if(mx===mn){mx=mn+1}
+  var step=W/(hist.length-1);
+  var pts=hist.map(function(v,i){return(i*step)+','+(H-(v-mn)/(mx-mn)*H)}).join(' ');
+  var lc=(hist[hist.length-1]>=hist[hist.length-2])?'#6bcb77':'#ff8a8a';
+  var fillPath='M '+pts+' L '+W+','+H+' L 0,'+H+' Z';
+  $('stockChart').innerHTML=
+    '<defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="'+lc+'" stop-opacity="0.4"/>'+
+      '<stop offset="100%" stop-color="'+lc+'" stop-opacity="0"/>'+
+    '</linearGradient></defs>'+
+    '<path d="'+fillPath+'" fill="url(#g1)"/>'+
+    '<polyline points="'+pts+'" fill="none" stroke="'+lc+'" stroke-width="1.5" stroke-linecap="round"/>'+
+    '<circle cx="'+((hist.length-1)*step)+'" cy="'+(H-(hist[hist.length-1]-mn)/(mx-mn)*H)+'" r="3" fill="'+lc+'" stroke="rgba(0,0,0,.3)" stroke-width="1"/>';
+  renderStock();
+}
+
+$('simBtn').addEventListener('click',function(){
+  var f=state.fun;
+  if(stockUpdateTimer){clearInterval(stockUpdateTimer);stockUpdateTimer=null}
+  /* 切回模拟盘 → ticker 清空为 ''，entry 各自独立 */
+  stockSwitchTo(f,'');
+  var e=stockEntry(f,'');
+  e.realMode=false;e.name='🐟 摸鱼科技';
+  if(!e.price||e.price<=0){e.price=10;e.history=[]}
+  f.stockRealMode=false;f.stockTicker='';f.stockName='🐟 摸鱼科技';
+  f.stockPrice=e.price;f.stockHistory=e.history;
+  f.stockHolds=e.shares;f.stockCoinCost=e.coinCost;f.stockAvgCost=e.avgCost;
+  saveFUN();renderStock();updateStockChart();
+  showToast('🎲','已切回模拟盘','价格由本地随机波动生成');
+});
+
+function stockFee(f){return Math.max(1,Math.floor((f.stockPrice||0)*0.02))}
+function stockBuyCost(f){return Math.max(1,Math.floor(f.stockPrice||0))+stockFee(f)}
+$('fetchStockBtn').addEventListener('click',pullRealStock);
+$('buyBtn').addEventListener('click',function(){
+  var f=state.fun,cost=stockBuyCost(f),fee=stockFee(f),e=stockEntry(f);
+  if(f.coins<cost){showToast('🪙','金币不够',cost+' 🪙 买 1 股（含手续费 '+fee+'）');return}
+  f.coins-=cost;
+  e.shares+=1;
+  e.coinCost+=cost;
+  e.avgCost=e.shares>0?(e.coinCost/e.shares):0;
+  /* 同步全局 */
+  f.stockHolds=e.shares;f.stockCoinCost=e.coinCost;f.stockAvgCost=e.avgCost;
+  saveFUN();elCoin.textContent=f.coins;
+  sfxCoin();renderStock();
+  showToast('📈','买入 1 股',f.stockName+' @ ¥'+f.stockPrice.toFixed(2)+' · 手续费 '+fee+' 🪙 · 均价 ¥'+e.avgCost.toFixed(2));
+});
+$('sellBtn').addEventListener('click',function(){
+  var f=state.fun,e=stockEntry(f);
+  if(e.shares<=0){showToast('📉','这只没持仓','当前：'+f.stockName);return}
+  var cost=e.coinCost;
+  var unit=Math.max(1,Math.floor(f.stockPrice));
+  var rev=e.shares*unit;
+  var profit=rev-cost;
+  e.shares=0;e.coinCost=0;e.avgCost=0;
+  /* 同步全局 */
+  f.stockHolds=0;f.stockCoinCost=0;f.stockAvgCost=0;
+  saveFUN();
+  gainCoins(rev);renderStock();
+  showToast('📉','全部卖出（'+f.stockName+'）','回收 '+rev+' 🪙 · '+(profit>=0?'赚 ':'亏 ')+Math.abs(profit)+' 🪙');
+  if(profit>50)unlockAch('stock_profit');
+});
+// ticker input 回车触发
+$('stockTicker').addEventListener('keydown',function(e){if(e.key==='Enter')pullRealStock()});
+
+/* ========== 小游戏 1：骰子（大小/豹子/点数 + 连胜） ========== */
+var DICE_FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
+var diceBet=10,diceRolling=false,diceMode='small',diceNum=6;
+document.querySelectorAll('#diceBet .chip').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('#diceBet .chip').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active');diceBet=Number(b.dataset.bet)||10;
+    $('diceRollBtn').textContent='🎲 开摇 · '+diceBet+' 🪙';
+  });
+});
+function setDiceMode(m){
+  diceMode=m;
+  var map={small:'betSmall',big:'betBig',triple:'betTriple',num:'betNum'};
+  ['betSmall','betBig','betTriple','betNum'].forEach(function(id){$(id).classList.remove('active')});
+  if(map[m])$(map[m]).classList.add('active');
+  $('diceNumRow').style.display=(m==='num')?'flex':'none';
+  var tips={small:'押小 3-10 · 1.9 倍返还（抽水 5%）',big:'押大 11-18 · 1.9 倍返还（抽水 5%）',triple:'豹子：三颗相同 · 1:19',num:'选一个数字，出现即赢 · 两颗 1:2 三颗 1:11'};
+  $('diceResult').textContent='已选：'+tips[m]+' · 开摇 🎲';
+}
+$('betSmall').addEventListener('click',function(){setDiceMode('small')});
+$('betBig').addEventListener('click',function(){setDiceMode('big')});
+$('betTriple').addEventListener('click',function(){setDiceMode('triple')});
+$('betNum').addEventListener('click',function(){setDiceMode('num')});
+document.querySelectorAll('#diceNumRow .chip').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('#diceNumRow .chip').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active');diceNum=Number(b.dataset.n)||1;
+    $('diceResult').textContent='押点数 '+diceNum+' · 出现 1:1 / 两颗 1:2 / 三颗 1:11 · 开摇 🎲';
+  });
+});
+function rollDice(){
+  if(!state.cfg||diceRolling)return;
+  var f=state.fun;
+  if(!spendCoins(diceBet)){showToast('🪙','金币不够','点金额区赚点，再去玩');return}
+  diceRolling=true;
+  var res=$('diceResult');res.className='game-result';res.textContent='骰子飞起来了…';
+  ['die0','die1','die2'].forEach(function(id){$(id).classList.add('rolling')});
+  var spinId=setInterval(function(){
+    ['die0','die1','die2'].forEach(function(id){$(id).textContent=DICE_FACES[(Math.random()*6)|0]});
+    sfxClick();
+  },90);
+  setTimeout(function(){
+    clearInterval(spinId);
+    var d=[1+Math.floor(Math.random()*6),1+Math.floor(Math.random()*6),1+Math.floor(Math.random()*6)];
+    ['die0','die1','die2'].forEach(function(id,i){var e=$(id);e.classList.remove('rolling');e.textContent=DICE_FACES[d[i]-1]});
+    var sum=d[0]+d[1]+d[2];
+    var win=false,back=0,desc='';
+    if(diceMode==='big'){win=sum>=11;back=Math.round(diceBet*2.0);desc='押大'}
+    else if(diceMode==='small'){win=sum<=10;back=Math.round(diceBet*2.0);desc='押小'}
+    else if(diceMode==='triple'){win=(d[0]===d[1]&&d[1]===d[2]);back=diceBet*25;desc='豹子'}
+    else{
+      var k=d.filter(function(x){return x===diceNum}).length;
+      win=k>0;back=(k>=3)?diceBet*15:(k===2?diceBet*4:diceBet*2.5);
+      desc='点数 '+diceNum+'（中 '+k+' 颗）';
+    }
+    var rollTxt=sum+' 点 ('+d.join('+')+')';
+    if(win){
+      var got=gainCoins(back);
+      f.diceStreak=(f.diceStreak||0)+1;
+      var bonus=Math.min(f.diceStreak-1,10)*5;
+      if(bonus>0)gainCoins(bonus);
+      saveFUN();
+      res.className='game-result win';
+      res.textContent='🎉 '+rollTxt+' · '+desc+' 中！+'+got+' 🪙'+(bonus>0?(' · '+f.diceStreak+' 连胜 +'+bonus+' 🪙'):'');
+      sfxCoin();
+    }else{
+      f.diceStreak=0;saveFUN();
+      res.className='game-result';
+      res.textContent='😵 '+rollTxt+' · '+desc+' 没中，亏 '+diceBet+' 🪙';
+    }
+    elCoin.textContent=f.coins;
+    diceRolling=false;
+  },1200);
+}
+$('diceRollBtn').addEventListener('click',rollDice);
+
+/* ========== 小游戏 2：打地鼠 ========== */
+var moleActive=false,moleHits=0,moleMissed=0,moleLeft=20,moleSpawner=null,moleClock=null;
+function buildMoleGrid(){
+  var g=$('moleGrid');
+  if(g.children.length)return;
+  for(var i=0;i<9;i++){
+    var c=document.createElement('div');
+    c.className='mole';
+    c.addEventListener('click',function(){
+      if(!moleActive||!this.classList.contains('up'))return;
+      this.classList.remove('up');this.textContent='';this.dataset.hit='1';
+      moleHits++;
+      gainCoins(4);
+      $('moleHits').textContent=moleHits;
+      elCoin.textContent=state.fun.coins;
+      sfxCoin();
+    });
+    g.appendChild(c);
+  }
+}
+function startMole(){
+  if(moleActive||!state.cfg)return;
+  var f=state.fun;
+  if(f.coins<20){showToast('🪙','金币不够','20 🪙 一局');return}
+  f.coins-=20;saveFUN();elCoin.textContent=f.coins;
+  buildMoleGrid();
+  moleActive=true;moleHits=0;moleMissed=0;moleLeft=20;
+  $('moleHits').textContent='0';$('moleTime').textContent='20.0';
+  $('moleResult').className='game-result';$('moleResult').textContent='开始！拍中 +4🪙 · 漏打 -1🪙';
+  $('moleBtn').disabled=true;
+  moleSpawner=setInterval(function(){
+    var cells=$('moleGrid').children;
+    var n=Math.random()<0.3?2:1;
+    for(var k=0;k<n;k++){
+      var c=cells[Math.floor(Math.random()*9)];
+      if(!c||c.classList.contains('up'))continue;
+      c.classList.add('up');c.textContent='🐹';c.dataset.hit='0';
+      (function(cell){setTimeout(function(){
+        if(cell.classList.contains('up')){
+          cell.classList.remove('up');cell.textContent='';
+          moleMissed++;loseCoins(1);
+          $('moleHits').textContent=moleHits;
+          elCoin.textContent=state.fun.coins;
+        }
+      },600)})(c);
+    }
+  },700);
+  moleClock=setInterval(function(){
+    moleLeft-=0.1;
+    if(moleLeft<=0){moleLeft=0;endMole();return}
+    $('moleTime').textContent=moleLeft.toFixed(1);
+  },100);
+}
+function endMole(){
+  clearInterval(moleSpawner);clearInterval(moleClock);
+  moleActive=false;$('moleBtn').disabled=false;
+  Array.prototype.forEach.call($('moleGrid').children,function(c){c.classList.remove('up');c.textContent=''});
+  var net=moleHits*3-moleMissed*2-20;
+  $('moleResult').className='game-result'+(net>0?' win':'');
+  $('moleResult').textContent='命中 '+moleHits+' 只(+'+(moleHits*3)+'🪙) · 漏打 '+moleMissed+' 只(-'+(moleMissed*2)+'🪙) · 净 '+(net>=0?'+':'')+net+' 🪙';
+  sfxCoin();
+}
+$('moleBtn').addEventListener('click',startMole);
+
+/* ========== 小游戏 3：记忆翻牌（三档难度） ========== */
+var MEM_EMO=['🪙','💰','🐟','☕','🎯','🍺','🍔','🎮','🚀','💎','🍩','🐱'];
+var MEM_MODES=[
+  {pairs:6,cols:4,cost:20,pair:10,clear:70,peek:15,penalty:2},
+  {pairs:8,cols:4,cost:30,pair:13,clear:100,peek:20,penalty:3},
+  {pairs:12,cols:6,cost:50,pair:16,clear:180,peek:30,penalty:4}
+];
+var memMode=0,memOpen=[],memLocked=false,memLeftPairs=0,memPlaying=false;
+function memPairReward(){return MEM_MODES[memMode].pair+(milestoneActive('m1')?2:0)}
+function setMemMode(i){
+  memMode=i;
+  document.querySelectorAll('#memModes .chip').forEach(function(x,i2){x.classList.toggle('active',i2===i)});
+  if(!memPlaying){
+    var m=MEM_MODES[i];
+    $('memBtn').textContent='🃏 开局 · '+m.cost+' 🪙';
+    $('memPeek').textContent='👁️ 全看1s ('+m.peek+'🪙)';
+    $('memResult').textContent=(m.pairs*2)+' 张找 '+m.pairs+' 对 · 配对 +'+memPairReward()+' 🪙 · 翻错 -'+m.penalty+' 🪙 · 全清 +'+m.clear;
+  }
+}
+document.querySelectorAll('#memModes .chip').forEach(function(b){
+  b.addEventListener('click',function(){
+    var i=Number(b.dataset.m)||0;
+    var wasPlaying=memPlaying;
+    if(wasPlaying)memPlaying=false;
+    setMemMode(i);
+    if(wasPlaying)startMemory(); // 切档位立刻按新难度重开
+  });
+});
+function startMemory(){
+  if(memPlaying||!state.cfg)return;
+  var m=MEM_MODES[memMode];
+  if(!spendCoins(m.cost)){showToast('🪙','金币不够',m.cost+' 🪙 一局');$('memGrid').innerHTML='';return}
+  var deck=MEM_EMO.slice(0,m.pairs);
+  deck=deck.concat(deck).sort(function(){return Math.random()-0.5});
+  memOpen=[];memLocked=false;memLeftPairs=m.pairs;memPlaying=true;
+  var g=$('memGrid');g.innerHTML='';g.style.gridTemplateColumns='repeat('+m.cols+',1fr)';
+  deck.forEach(function(em){
+    var c=document.createElement('div');c.className='mcard';c.textContent=em;
+    c.addEventListener('click',function(){flipCard(this)});
+    g.appendChild(c);
+  });
+  $('memResult').className='game-result';
+  $('memResult').textContent=(m.pairs*2)+' 张牌 · 找出 '+m.pairs+' 对';
+}
+function flipCard(card){
+  if(!memPlaying||memLocked)return;
+  if(card.classList.contains('matched')||card.classList.contains('flipped'))return;
+  card.classList.add('flipped');memOpen.push(card);sfxClick();
+  if(memOpen.length<2)return;
+  if(memOpen[0].textContent===memOpen[1].textContent){
+    var a=memOpen[0],b=memOpen[1];memOpen=[];
+    a.classList.add('matched');b.classList.add('matched');
+    gainCoins(memPairReward());
+    memLeftPairs--;
+    $('memResult').textContent='配对成功 +'+memPairReward()+' 🪙 · 还剩 '+memLeftPairs+' 对';
+    sfxCoin();
+    if(memLeftPairs===0){
+      gainCoins(MEM_MODES[memMode].clear);
+      $('memResult').className='game-result win';
+      $('memResult').textContent='🎉 全清！额外 +'+MEM_MODES[memMode].clear+' 🪙';
+      confetti(60);memPlaying=false;setMemMode(memMode);
+    }
+  }else{
+    memLocked=true;
+    var x=memOpen[0],y=memOpen[1];
+    var lost=loseCoins(MEM_MODES[memMode].penalty);
+    $('memResult').className='game-result';
+    $('memResult').textContent='❌ 翻错 -'+lost+' 🪙 · 记好位置再来';
+    setTimeout(function(){x.classList.remove('flipped');y.classList.remove('flipped');memOpen=[];memLocked=false},700);
+  }
+}
+$('memBtn').addEventListener('click',startMemory);
+$('memPeek').addEventListener('click',function(){
+  if(!memPlaying){showToast('🃏','先开一局','开局后可偷看');return}
+  var pk=MEM_MODES[memMode].peek;
+  if(!spendCoins(pk)){showToast('🪙','金币不够',pk+' 🪙 看一次');return}
+  var cards=$('memGrid').children;
+  Array.prototype.forEach.call(cards,function(c){if(!c.classList.contains('matched'))c.classList.add('flipped')});
+  setTimeout(function(){Array.prototype.forEach.call(cards,function(c){if(!c.classList.contains('matched'))c.classList.remove('flipped')})},1000);
+});
+
+/* ========== 小游戏 4：顺序记忆 0→9（一张一次，一次机会） ========== */
+var ordState='idle',ordCards=[],ordNext=0,ordSeen=0,ordLock=false;
+var ORD_COST=30,ORD_PENALTY=10,ORD_PAIR=8,ORD_CLEAR=150;
+function startOrder(){
+  if(ordState!=='idle')return;
+  if(!state.cfg)return;
+  if(!spendCoins(ORD_COST)){showToast('🪙','金币不够',ORD_COST+' 🪙 一局');return}
+  var nums=[0,1,2,3,4,5,6,7,8,9].sort(function(){return Math.random()-.5});
+  var g=$('ordGrid');g.innerHTML='';ordCards=[];
+  nums.forEach(function(n){
+    var c=document.createElement('div');c.className='mcard ord';c.dataset.n=n;c.textContent=String(n);
+    c.addEventListener('click',function(){ordFlip(c)});
+    g.appendChild(c);ordCards.push(c);
+  });
+  ordState='memorize';ordNext=0;ordSeen=0;ordLock=false;
+  $('ordBtn').textContent='✅ 记好了，开挑战';
+  $('ordPhase').textContent='记忆阶段 · 每张只能看一次，已看 0/10';
+  $('ordScore').textContent='0/10';
+  $('ordResult').className='game-result';
+  $('ordResult').textContent='点牌翻看 0.5 秒自动盖上 · 每张牌只能看一次 · 记牢再挑战';
+  sfxClick();
+}
+function ordChallenge(){
+  ordState='challenge';
+  ordCards.forEach(function(c){c.classList.remove('flipped');c.classList.remove('seen');delete c.dataset.seen});
+  ordNext=0;
+  $('ordBtn').disabled=true;$('ordBtn').textContent='🔢 挑战中（仅一次机会）';
+  $('ordPhase').textContent='按 0→9 顺序翻开 · 错一次就结束';
+  $('ordResult').textContent='从 0 开始点 · 每对 +'+ORD_PAIR+' 🪙 · 点错 -'+ORD_PENALTY+' 🪙 并结束';
+}
+function ordFlip(c){
+  if(ordState==='memorize'){
+    if(ordLock||c.dataset.seen)return;
+    c.dataset.seen='1';c.classList.add('flipped');ordLock=true;
+    sfxClick();
+    ordSeen++;
+    $('ordPhase').textContent='记忆阶段 · 每张只能看一次，已看 '+ordSeen+'/10';
+    setTimeout(function(){
+      c.classList.remove('flipped');c.classList.add('seen');ordLock=false;
+    },500);
+    return;
+  }
+  if(ordState!=='challenge'||c.classList.contains('flipped'))return;
+  var n=Number(c.dataset.n);
+  if(n===ordNext){
+    c.classList.add('flipped');ordNext++;sfxCoin();
+    gainCoins(ORD_PAIR);
+    $('ordScore').textContent=ordNext+'/10';
+    if(ordNext===10){
+      gainCoins(ORD_CLEAR);confetti(80);sfxMilestone();
+      $('ordResult').className='game-result win';
+      $('ordResult').textContent='🎉 0→9 全部按序翻开！额外 +'+ORD_CLEAR+' 🪙';
+      ordEnd();
+    }else{
+      $('ordResult').textContent='✅ '+n+' 正确 · 下一张找 '+ordNext;
+    }
+  }else{
+    ordState='reveal';
+    var lost=loseCoins(ORD_PENALTY);
+    c.classList.add('flipped','ord-wrong');
+    sfxClick();
+    ordCards.forEach(function(x){x.classList.add('flipped')});
+    $('ordPhase').textContent='挑战失败 · 答案已揭晓';
+    $('ordResult').className='game-result';
+    $('ordResult').textContent='❌ 这张是 '+n+'，该翻 '+ordNext+' · -'+lost+' 🪙 · 本局结束';
+    setTimeout(function(){ordEnd()},1600);
+  }
+}
+function ordEnd(){
+  ordState='idle';
+  $('ordBtn').disabled=false;$('ordBtn').textContent='🔢 开始 · '+ORD_COST+' 🪙';
+  $('ordPhase').textContent='点开始进入记忆阶段';
+  $('ordScore').textContent='0/10';
+}
+$('ordBtn').addEventListener('click',function(){
+  if(ordState==='memorize')ordChallenge();
+  else if(ordState==='idle')startOrder();
+});
+
+/* ========== 小游戏 5：幸运转盘（注额 / 惩罚格 / 奖池） ========== */
+var WHEEL_PRIZES=[
+  {short:'+0.8x',col:'#ffecb3',k:'coin',mult:0.8},
+  {short:'+1.2x',col:'#06292e',k:'coin',mult:1.2},
+  {short:'-1x',col:'#ffccbc',k:'penalty',mult:1},
+  {short:'+2.5x',col:'#4a3200',k:'coin',mult:2.5},
+  {short:'2x60s',col:'#b39ddb',k:'buff',v:60},
+  {short:'-2x',col:'#ffccbc',k:'penalty',mult:2},
+  {short:'再转1次',col:'#c8e6c9',k:'again'},
+  {short:'🎁池',col:'#fff59d',k:'jackpot'},
+  {short:'-0.5x',col:'#ffccbc',k:'penalty',mult:0.5},
+  {short:'+3x',col:'#ffecb3',k:'coin',mult:3},
+  {short:'早退5m',col:'#3d1750',k:'end',v:300},
+  {short:'-3x',col:'#ffccbc',k:'penalty',mult:3}
+];
+/* 12格，4个亏钱项均匀插入 idx 2/5/8/11 —— 每 2-3 个赚钱项后才出现一个惩罚 */
+var wheelRot=0,wheelSpinning=false,WHEEL_BET=20;
+document.querySelectorAll('#wheelBet .chip').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('#wheelBet .chip').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active');WHEEL_BET=Number(b.dataset.bet)||20;
+    $('wheelBtn').textContent='🎡 转起来 · '+WHEEL_BET+' 🪙';
+  });
+});
+function updateWheelHud(){
+  var f=state.fun;if(!f)return;
+  $('wheelJackpot').textContent=Math.floor(f.wheelJackpot||0);
+}
+function renderWheelLabels(){
+  var w=$('wheel');
+  if(w.children.length&&w.querySelector('.wheel-label'))return;
+  var seg=360/WHEEL_PRIZES.length;
+  WHEEL_PRIZES.forEach(function(p,i){
+    var s=document.createElement('span');
+    s.className='wheel-label';s.textContent=p.short;s.style.color=p.col;
+    var rad=(i*seg+seg/2-90)*Math.PI/180;
+    s.style.left=(93+Math.cos(rad)*68)+'px';
+    s.style.top=(93+Math.sin(rad)*68)+'px';
+    w.appendChild(s);
+  });
+}
+function applyWheelPrize(p,bet){
+  var f=state.fun,res=$('wheelResult'),again=false;
+  if(p.k==='coin'){
+    var v=Math.max(1,Math.round(bet*p.mult));
+    var got=gainCoins(v);res.className='game-result win';res.textContent='🎉 转到 '+p.short+'（+'+got+' 🪙）';
+  }else if(p.k==='buff'){
+    addBuff('double_coin',p.v,'🪙','金币 2x');res.className='game-result win';res.textContent='✨ 转到 2x60s · 金币双倍 1 分钟';
+  }else if(p.k==='end'){
+    res.className='game-result win';res.textContent='🐟 下班提前 5 分钟！';
+    earlyLeave(p.v);
+  }else if(p.k==='penalty'){
+    var lost=loseCoins(Math.max(1,Math.round(bet*(p.mult||1))));
+    res.className='game-result';res.textContent='💸 转到惩罚格 '+p.short+' · 再扣 '+lost+' 🪙';
+  }else if(p.k==='again'){
+    again=true;res.className='game-result';res.textContent='🔁 转到「再转 1 次」· 免费再转，不收金币';
+  }else{
+    var jp=Math.floor(f.wheelJackpot||0);
+    f.wheelJackpot=80;gainCoins(jp);confetti(90);
+    res.className='game-result win';res.textContent='🎁 转到奖池！+'+jp+' 🪙（奖池重置为 80）';
+  }
+  saveFUN();updateWheelHud();
+  elCoin.textContent=f.coins;sfxCoin();
+  return again;
+}
+function spinWheel(isFree){
+  if(wheelSpinning||!state.cfg)return;
+  var f=state.fun;
+  if(!isFree){
+    if(!spendCoins(WHEEL_BET)){showToast('🪙','金币不够',WHEEL_BET+' 🪙 一次');return}
+    f.wheelJackpot=Math.floor(f.wheelJackpot||80)+Math.max(1,Math.round(WHEEL_BET*0.05));
+  }
+  saveFUN();updateWheelHud();
+  wheelSpinning=true;$('wheelBtn').disabled=true;
+  $('wheelResult').className='game-result';$('wheelResult').textContent='转盘飞转中…';
+  var idx=Math.floor(Math.random()*WHEEL_PRIZES.length),seg=360/WHEEL_PRIZES.length;
+  var center=idx*seg+seg/2;
+  var need=((360-center)-(wheelRot%360)+720)%360;
+  wheelRot+=360*5+need;
+  $('wheel').style.transform='rotate('+wheelRot+'deg)';
+  sfxClick();
+  setTimeout(function(){
+    var again=applyWheelPrize(WHEEL_PRIZES[idx],WHEEL_BET);
+    wheelSpinning=false;$('wheelBtn').disabled=false;
+    if(again)setTimeout(function(){spinWheel(true)},1300);
+  },3500);
+}
+$('wheelBtn').addEventListener('click',function(){spinWheel(false)});
+
+/* ========== 金库：攒钱生息 ========== */
+function bankRatePct(){return milestoneActive('m3')?4:3}
+function renderBank(){
+  var f=state.fun;if(!f)return;
+  $('bankAmount').textContent=Math.floor(f.bank||0)+' 🪙';
+  $('bankRate').textContent='利率 '+bankRatePct()+'%/小时 · 前 5000 🪙 计息（多存白存）· 复利 · 页面开着才涨';
+  renderMilestones();
+}
+function bankDeposit(all){
+  var f=state.fun;
+  var amt=all?f.coins:Math.floor(f.coins/2);
+  if(amt<1){showToast('🪙','口袋里没金币','先去赚点再存');return}
+  f.coins-=amt;f.bank=(f.bank||0)+amt;
+  if(!f.bankTs)f.bankTs=Date.now();
+  saveFUN();elCoin.textContent=f.coins;sfxCoin();
+  showToast('🏦','存入 '+amt+' 🪙','开始生利息 · 取出随时可取');
+  renderBank();
+}
+function bankWithdraw(){
+  var f=state.fun;
+  var b=Math.floor(f.bank||0);
+  if(b<1){showToast('🏦','金库是空的','先存点进去');return}
+  f.bank=(f.bank||0)-b;f.bankTs=0;
+  f.coins+=b;
+  saveFUN();elCoin.textContent=f.coins;
+  showToast('🏦','取出 '+b+' 🪙','利息已一并入账');
+  renderBank();
+}
+function bankSet(dir){
+  var f=state.fun;
+  var n=Math.floor(Number($('bankInput').value)||0);
+  if(n<1){showToast('🏦','输入数量','想存/取多少金币？');return}
+  if(dir>0){
+    if(f.coins<n){showToast('🪙','口袋不够','现在只有 '+f.coins+' 🪙');return}
+    f.coins-=n;f.bank=(f.bank||0)+n;
+    if(!f.bankTs)f.bankTs=Date.now();
+    saveFUN();elCoin.textContent=f.coins;sfxCoin();
+    showToast('🏦','存入 '+n+' 🪙','开始生利息');
+  }else{
+    if(Math.floor(f.bank||0)<n){showToast('🏦','金库不够','金库里只有 '+Math.floor(f.bank||0)+' 🪙');return}
+    f.bank-=n;f.bankTs=Date.now();f.coins+=n;
+    saveFUN();elCoin.textContent=f.coins;sfxCoin();
+    showToast('🏦','取出 '+n+' 🪙','已回到口袋');
+  }
+  $('bankInput').value='';
+  renderBank();
+}
+$('bankIn').addEventListener('click',function(){bankDeposit(false)});
+$('bankInAll').addEventListener('click',function(){bankDeposit(true)});
+$('bankOut').addEventListener('click',bankWithdraw);
+$('bankInSet').addEventListener('click',function(){bankSet(1)});
+$('bankOutSet').addEventListener('click',function(){bankSet(-1)});
+// 每 10 秒结算一次利息（复利，按离上次结算的时长）
+setInterval(function(){
+  var f=state.fun;
+  if(!f||!f.bank||f.bank<=0)return;
+  var now=Date.now(),ts=f.bankTs||now;
+  var dt=(now-ts)/3600000;
+  if(dt<=0)return;
+  var base=Math.min(f.bank,5000);
+  var r=bankRatePct()/100;
+  var gain=base*(Math.pow(1+r,dt)-1);
+  if(gain>0){
+    f.bank+=gain;
+    f.totalEarned=(f.totalEarned||0)+gain;
+    f.bankTs=now;saveFUN();checkMilestones();
+  }
+},10000);
+
+/* ========== 商店：金币流失（赚得到也要花得掉） ========== */
+var SHOP_ITEMS=[
+  {id:'coffee',emo:'☕',name:'摸鱼咖啡',desc:'搭子心情 +18，提神续命',cost:12},
+  {id:'food',emo:'🍖',name:'搭子口粮',desc:'搭子心情 +30，比咖啡更顶饱',cost:20},
+  {id:'meal',emo:'🍱',name:'加班餐',desc:'下班后金币双倍 60s（仅限加班时段）',cost:30},
+  {id:'leave',emo:'🎫',name:'早退券',desc:'下班提前 10 分钟（同步设置）',cost:120},
+  {id:'fund',emo:'🐟',name:'摸鱼基金',desc:'随机 buff：金币双倍 60s / 幸运时刻 60s',cost:60},
+  {id:'pet',emo:'🐾',name:'领养搭子',desc:'随机解锁一只图鉴里还没有的搭子',cost:400},
+  {id:'gift',emo:'🎁',name:'同事随礼盲盒',desc:'抽一次，可能小赚也可能白给',cost:50},
+  {id:'car',emo:'🏎️',name:'给老板换车',desc:'纯支出，换一句「辛苦了」',cost:500}
+];
+function renderShop(){
+  var host=$('shopList');if(!host)return;
+  host.innerHTML=SHOP_ITEMS.map(function(it){
+    return '<div class="shop-item"><span class="s-emo">'+it.emo+'</span>'+
+      '<div class="s-name"><b>'+it.name+'</b><small>'+it.desc+'</small></div>'+
+      '<button data-shop="'+it.id+'">'+it.cost+' 🪙</button></div>';
+  }).join('');
+}
+function shopBuy(id){
+  var it=SHOP_ITEMS.filter(function(x){return x.id===id})[0];
+  if(!it||!state.fun)return;
+  var f=state.fun;
+  if((id==='coffee'||id==='food')&&!petById(f.petId)){
+    showToast('🐾','还没有搭子','先去商店「领养搭子」再买吃的');
+    return;
+  }
+  if(!spendCoins(it.cost)){showToast('🪙','金币不够',it.name+' 需要 '+it.cost+' 🪙');return}
+  if(id==='coffee'){
+    petAct(0,18,'喝咖啡');
+  }else if(id==='food'){
+    petAct(0,30,'吃口粮');
+  }else if(id==='meal'){
+    var cfg=state.cfg,otNow=false;
+    if(cfg){
+      var curMin=new Date().getHours()*60+new Date().getMinutes();
+      var endMin=toMin(cfg.end);
+      otNow=curMin>=endMin;
+    }
+    if(!otNow){showToast('🚫','不是加班时段','加班餐只有下班后才能吃 · -'+it.cost+' 🪙 白花了');loseCoins(it.cost);saveFUN();return}
+    addBuff('double_coin',60,'🍱','加班餐');
+    showToast('🍱','加班餐到手','60 秒金币双倍 · 终于有顿像样的饭 · -'+it.cost+' 🪙');
+  }else if(id==='leave'){
+    earlyLeave(600);
+  }else if(id==='fund'){
+    var pick=['double_coin','lucky'][(Math.random()*2)|0];
+    if(pick==='double_coin'){addBuff('double_coin',60,'🪙','摸鱼基金');showToast('🪙','摸鱼基金：金币双倍','60 秒 · -'+it.cost+' 🪙')}
+    else{addBuff('lucky',60,'🍀','摸鱼基金');showToast('🍀','摸鱼基金：幸运时刻','60 秒 · -'+it.cost+' 🪙')}
+  }else if(id==='pet'){
+    var got=adoptPet();
+    showToast('🐾',got.fresh?'解锁新搭子：'+got.pet.name:'换了个搭子：'+got.pet.name,
+      got.pet.emo+' '+petStars(got.pet.rare)+' · -'+it.cost+' 🪙 · 难度加大了，好好珍惜');
+  }else if(id==='car'){
+    showToast('🏎️','给老板换了辆新车','老板说「辛苦了」· -'+it.cost+' 🪙 · 你的功德 +1');
+    confetti(18);
+  }else if(id==='gift'){
+    var r=Math.random(),back=0;
+    if(r<0.5)back=0;
+    else if(r<0.8)back=40;
+    else if(r<0.95)back=90;
+    else back=300;
+    if(back>0)gainCoins(back);
+    showToast(back>0?'🎁':'💸','盲盒开出 '+(back>0?('+'+back+' 🪙'):'空气'),
+      back>0?('同事回礼了 · 净'+(back-it.cost>=0?'赚':'亏')+Math.abs(back-it.cost)+' 🪙'):('白花 '+it.cost+' 🪙，下次运气好点'));
+  }
+  saveFUN();
+}
+$('shopList').addEventListener('click',function(e){
+  var b=e.target.closest('[data-shop]');
+  if(b)shopBuy(b.dataset.shop);
+});
+
+/* ========== 扫雷：9×9 / 10 雷 ========== */
+var MINE_N=18,MINE_COST=20,MINE_WIN=130,MINE_LOSE=20,MINE_TOTAL=63;
+var mineCells=[],mineOpen=false,mineFirst=true,mineFlags=0,mineRevealedN=0,mineMark=false,mineStartTs=0,mineTimer=null;
+
+function mineNb(i){
+  var x=i%9,y=(i/9)|0,out=[];
+  for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){
+    if(!dx&&!dy)continue;
+    var nx=x+dx,ny=y+dy;
+    if(nx>=0&&nx<9&&ny>=0&&ny<9)out.push(ny*9+nx);
+  }
+  return out;
+}
+function minePut(safe){
+  var forbid=mineNb(safe).concat([safe]),pool=[],i;
+  for(i=0;i<81;i++)if(forbid.indexOf(i)<0)pool.push(i);
+  for(i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t}
+  pool.slice(0,MINE_N).forEach(function(k){mineCells[k].mine=true});
+  for(i=0;i<81;i++)mineCells[i].n=mineCells[i].mine?0:mineNb(i).filter(function(k){return mineCells[k].mine}).length;
+}
+function minePaint(i){
+  var c=mineCells[i],el=document.querySelector('.mcell[data-i="'+i+'"]');
+  if(!el)return;
+  el.className='mcell';
+  el.textContent='';
+  if(c.open){
+    el.classList.add('revealed');
+    if(c.mine){el.classList.add('mine');el.textContent='💣'}
+    else if(c.n>0){el.classList.add('n'+c.n);el.textContent=c.n}
+  }else if(c.flag){el.classList.add('flagged');el.textContent='🚩'}
+}
+function mineHud(){
+  $('mineLeft').textContent=Math.max(0,MINE_N-mineFlags);
+  $('mineRevealed').textContent=mineRevealedN;
+}
+function mineReset(){
+  mineOpen=false;
+  if(mineTimer){clearInterval(mineTimer);mineTimer=null}
+  var btn=$('mineBtn');btn.disabled=false;btn.textContent='💣 新开一局 · '+MINE_COST+' 🪙';
+  $('mineTime').textContent='0';
+}
+function startMine(){
+  if(!state.cfg)return;
+  if(!spendCoins(MINE_COST)){showToast('🪙','金币不够',MINE_COST+' 🪙 一局');return}
+  mineReset();
+  mineOpen=true;mineFirst=true;mineFlags=0;mineRevealedN=0;mineStartTs=Date.now();
+  mineCells=[];
+  for(var i=0;i<81;i++)mineCells.push({mine:false,open:false,flag:false,n:0});
+  var grid=$('mineGrid');grid.innerHTML='';
+  for(i=0;i<81;i++){
+    var el=document.createElement('div');
+    el.className='mcell';el.dataset.i=String(i);
+    grid.appendChild(el);
+  }
+  mineHud();
+  $('mineTime').textContent='0';
+  $('mineBtn').disabled=true;$('mineBtn').textContent='💣 扫雷中…';
+  $('mineResult').className='game-result';$('mineResult').textContent='点第一格开局（第一格必定安全）';
+  mineTimer=setInterval(function(){
+    if(!mineOpen)return;
+    $('mineTime').textContent=String(Math.floor((Date.now()-mineStartTs)/1000));
+  },1000);
+}
+function mineOpenCell(i){
+  var c=mineCells[i];
+  if(!mineOpen||c.open||c.flag)return;
+  if(mineFirst){
+    mineFirst=false;
+    minePut(i);
+  }
+  if(c.mine){
+    mineOpen=false;
+    if(mineTimer){clearInterval(mineTimer);mineTimer=null}
+    mineCells.forEach(function(cc,k){if(cc.mine){cc.open=true;minePaint(k)}});
+    var lost=loseCoins(MINE_LOSE);
+    $('mineResult').className='game-result';
+    $('mineResult').textContent='💥 踩雷了！-'+lost+' 🪙 · 再攒点金币重开';
+    $('mineBtn').disabled=false;$('mineBtn').textContent='💣 重开一局 · '+MINE_COST+' 🪙';
+    return;
+  }
+  var stack=[i];
+  while(stack.length){
+    var k=stack.pop(),cur=mineCells[k];
+    if(cur.open||cur.flag||cur.mine)continue;
+    cur.open=true;cur.flag=false;mineRevealedN++;
+    minePaint(k);
+    if(cur.n===0)mineNb(k).forEach(function(nb){if(!mineCells[nb].open)stack.push(nb)});
+  }
+  mineHud();
+  if(mineRevealedN>=MINE_TOTAL){
+    mineOpen=false;
+    if(mineTimer){clearInterval(mineTimer);mineTimer=null}
+    var secs=Math.floor((Date.now()-mineStartTs)/1000);
+    var bonus=secs<=60?20:0;
+    gainCoins(MINE_WIN+bonus);
+    $('mineResult').className='game-result win';
+    $('mineResult').textContent='🎉 全部扫清！用时 '+secs+'s · +'+(MINE_WIN+bonus)+' 🪙'+(bonus?'（速通 +20）':'');
+    $('mineBtn').disabled=false;$('mineBtn').textContent='💣 再来一局 · '+MINE_COST+' 🪙';
+    confetti(40);sfxMilestone();
+  }
+}
+function mineToggleFlag(i){
+  var c=mineCells[i];
+  if(!mineOpen||c.open)return;
+  c.flag=!c.flag;
+  mineFlags+=c.flag?1:-1;
+  minePaint(i);mineHud();
+}
+function mineAt(target){
+  var el=target.closest?target.closest('.mcell'):null;
+  if(!el)return -1;
+  var i=Number(el.dataset.i);
+  return isNaN(i)?-1:i;
+}
+$('mineGrid').addEventListener('click',function(e){
+  var i=mineAt(e.target);if(i<0)return;
+  if(mineMark)mineToggleFlag(i);else mineOpenCell(i);
+});
+$('mineGrid').addEventListener('contextmenu',function(e){
+  e.preventDefault();
+  var i=mineAt(e.target);if(i<0)return;
+  mineToggleFlag(i);
+});
+$('mineBtn').addEventListener('click',function(){
+  if(mineOpen){showToast('💣','本局还没结束','踩雷或通关后才能重开');return}
+  startMine();
+});
+$('mineFlagBtn').addEventListener('click',function(){
+  mineMark=!mineMark;
+  this.classList.toggle('active',mineMark);
+  this.textContent=mineMark?'🚩 标记中':'🚩 标记';
+  showToast('🚩',mineMark?'标记模式已开':'标记模式已关',mineMark?'点格子插旗/拔旗':'左键翻格，右键插旗');
+});
+
+/* ========== 摸鱼日报 ========== */
+var repStore=null;
+function loadReports(){try{repStore=JSON.parse(localStorage.getItem(REPORTS_KEY)||'[]')}catch(e){repStore=[]}}
+function saveReports(){try{localStorage.setItem(REPORTS_KEY,JSON.stringify(repStore))}catch(e){}}
+
+function generateDailyReport(){
+  loadReports();
+  var k=todayKey();
+  // 今天已有日报就跳过（避免下班流程多次生成）
+  if(repStore.length&&repStore[0].date===k)return;
+  var todayLog=dailyLogs[k]||{};
+  var coins=todayLog.coins||state.fun.coins;
+  var workSec=todayLog.workSec||0;
+  var cfg=state.cfg;var dayPay=cfg?cfg.salary/Math.max(1,cfg.workDays||21.75):0;
+  var earned=state.peeking?(todayLog.money||0):'****';
+  var streak=state.fun.streakDays;
+  var highlights=[];
+  if(streak>=3)highlights.push('🔥 连搬 '+streak+' 天，稳！');
+  if(workSec>9*3600)highlights.push('💪 今天工时超长');
+  if(coins>50)highlights.push('🪙 今天赚了 '+coins+' 金币');
+  if(state.fun.achievements.length>0)highlights.push('🏆 有新成就解锁！');
+  var lucky=EVENTS[(Math.random()*EVENTS.length)|0];
+  var soup=SOUP[(Math.random()*SOUP.length)|0];
+  var report={date:k,coins:coins,workSec:workSec,highlights:highlights,lucky:lucky.emo+' '+lucky.t+'：'+lucky.d,soup:soup};
+  repStore.unshift(report);
+  if(repStore.length>30)repStore=repStore.slice(0,30);
+  saveReports();
+  showToast('📝','今天的日报已生成','来日报 Tab 看看');
+}
+function renderReports(){
+  loadReports();
+  var host=el('reportList');
+  if(!repStore||repStore.length===0){host.innerHTML='<div class="foot">还没有日报 · 下班时自动生成 或 手动点按钮</div>';return}
+  host.innerHTML=repStore.map(function(r){
+    return '<div class="report-card">'+
+      '<div class="r-head"><div class="r-title">📋 '+r.date+' 摸鱼日报</div><div class="r-date">自动生成</div></div>'+
+      '<div class="r-row"><span>摸鱼金币</span><span>'+(r.coins||0)+' 🪙</span></div>'+
+      '<div class="r-row"><span>工作时长</span><span>'+hm(r.workSec||0)+'</span></div>'+
+      (r.highlights&&r.highlights.length?'<div class="r-highlight">'+r.highlights.join(' ｜ ')+'</div>':'')+
+      '<div class="r-highlight">🎲 今日运势：'+r.lucky+'</div>'+
+      '<div class="r-highlight">🍲 每日毒鸡汤："'+r.soup+'"</div>'+
+    '</div>';
+  }).join('');
+}
+loadReports();
+$('genReportBtn').addEventListener('click',function(){
+  if(!state.cfg){showToast('⚙️','先设置工资','设置后才能生成日报');return}
+  loadReports();
+  repStore=repStore.filter(function(r){return r.date!==todayKey()});
+  saveReports();
+  generateDailyReport();
+  renderReports();
+});
+$('clearReportBtn').addEventListener('click',function(){
+  if(!confirm('清空所有日报历史？'))return;
+  repStore=[];saveReports();renderReports();showToast('🗑️','已清空','日报历史已删除');
+});
+
+/* ========== 备忘录 ========== */
+function loadMemos(){try{return JSON.parse(localStorage.getItem(MEMOS_KEY)||'[]')}catch(e){return[]}}
+function saveMemos(memos){try{localStorage.setItem(MEMOS_KEY,JSON.stringify(memos))}catch(e){}}
+var memos=loadMemos();
+var memoTimers=[];
+function scheduleMemos(){
+  memoTimers.forEach(function(t){clearTimeout(t)});memoTimers=[];
+  var now=new Date();now.setSeconds(0,0);
+  var today=new Date();today.setHours(0,0,0,0);
+  memos.forEach(function(m){
+    var parts=m.time.split(':');
+    var target=new Date(today);target.setHours(Number(parts[0])||0,Number(parts[1])||0,0,0);
+    if(target.getTime()-now.getTime()>0){
+      var ms=target.getTime()-now.getTime();
+      memoTimers.push(setTimeout(function(){
+        showToast('⏰','摸鱼备忘！',m.text);
+        confetti(20);sfxClick();
+      },ms));
+    }
+  });
+}
+function renderMemos(){
+  var host=el('memoList');host.innerHTML='';
+  if(memos.length===0){host.innerHTML='<div class="foot">还没有备忘 · 选一个预设 或 自定义</div>';return}
+  memos.forEach(function(m,i){
+    var row=document.createElement('div');row.className='memo-item';
+    row.innerHTML='<span>⏰</span><div class="m-text"></div><div class="m-time"></div><span class="m-del" data-i="'+i+'">✕</span>';
+    row.querySelector('.m-text').textContent=m.text;
+    row.querySelector('.m-time').textContent=m.time;
+    row.querySelector('.m-del').addEventListener('click',function(){memos.splice(i,1);saveMemos(memos);renderMemos();scheduleMemos()});
+    host.appendChild(row);
+  });
+  if(memos.length>=5)unlockAch('memo_master');
+}
+$('addMemoBtn').addEventListener('click',function(){var t=$('memoTime').value,tx=$('memoText').value.trim();if(!t){alert('选个时间');return}if(!tx){alert('写点内容');return}memos.push({time:t,text:tx});memos.sort(function(a,b){return a.time.localeCompare(b.time)});saveMemos(memos);renderMemos();scheduleMemos();showToast('⏰','已添加',''+t+' · '+tx);sfxClick()});
+document.querySelectorAll('.memo-preset').forEach(function(p){p.addEventListener('click',function(){var d=new Date();d.setMinutes(d.getMinutes()+Math.floor(Math.random()*40)+10);$('memoTime').value=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');$('memoText').value=p.dataset.text})});
+
+/* ========== 快捷键 ========== */
+document.addEventListener('keydown',function(e){
+  if(e.code==='Space'&&!e.target.matches('input,textarea')){e.preventDefault();elAmountBox.click()}
+  if((e.key==='f'||e.key==='F')&&!e.target.matches('input,textarea'))toggleFocus()
+});
+
+/* ========== 专注模式 / 音效 ========== */
+function toggleFocus(){state.focusMode=!state.focusMode;document.body.classList.toggle('focus-mode',state.focusMode);$('focusBtn').textContent=state.focusMode?'🌙':'🎯';showToast(state.focusMode?'🎯':'🌙',state.focusMode?'专注模式':'返回摸鱼',state.focusMode?'纯进度条':'欢迎回来 🪙')}
+$('focusBtn').addEventListener('click',toggleFocus);
+$('soundBtn').addEventListener('click',function(){state.soundOn=!state.soundOn;$('soundBtn').textContent=state.soundOn?'🔊':'🔇';if(state.soundOn){initAudio();beep(880,.1,'sine',.08)}});
+$('soupBtn').addEventListener('click',function(){var s=SOUP[(Math.random()*SOUP.length)|0];showToast('🍲','每日毒鸡汤',s)});
+
+/* ========== 设置面板 ========== */
+var fSalary=$('cfgSalary'),fDays=$('cfgDays'),fStart=$('cfgStart'),fEnd=$('cfgEnd'),
+    fLunch=$('cfgLunch'),fLs=$('cfgLunchStart'),fLe=$('cfgLunchEnd'),fOT=$('cfgOT'),
+    fPayday=$('cfgPayday'),fRaise=$('cfgRaise');
+var pwdInput=$('pwdInput'),pwdInput2=$('pwdInput2');
+function syncLunch(){fLs.disabled=!fLunch.checked;fLe.disabled=!fLunch.checked}
+function applyTheme(n){
+  /* 只切换主题 class，保留悬浮窗等其它状态 class */
+  document.body.classList.remove('theme-struggle','theme-fish');
+  if(n&&n!=='default')document.body.classList.add('theme-'+n);
+  document.querySelectorAll('.theme-btn').forEach(function(b){b.classList.toggle('active',b.dataset.theme===n)});
+}
+document.querySelectorAll('.theme-btn').forEach(function(b){b.addEventListener('click',function(){applyTheme(b.dataset.theme)})});
+
+function openModal(){
+  if(!state.cfg)return;
+  fSalary.value=state.cfg.salary;fDays.value=state.cfg.workDays;fStart.value=state.cfg.start;fEnd.value=state.cfg.end;
+  fLunch.checked=!!state.cfg.useLunch;fLs.value=state.cfg.lunchStart;fLe.value=state.cfg.lunchEnd;
+  fOT.checked=!!state.cfg.otEnabled;fPayday.value=state.cfg.payday||10;fRaise.value=state.cfg.raisePct||0;
+  pwdInput.value='';pwdInput2.value='';syncLunch();applyTheme(state.cfg.theme||'default');
+  $('encLock').textContent=state.pwd?'🔐':'🔓';
+  $('encStatus').textContent=state.pwd?('已加密 · '+state.peekCount+' 次偷看历史'):'未加密 · 建议设置密码保护隐私';
+  $('modal').hidden=false;
+}
+function closeModal(){$('modal').hidden=true}
+$('gearBtn').addEventListener('click',openModal);$('closeBtn').addEventListener('click',closeModal);
+$('modal').addEventListener('click',function(e){if(e.target===$('modal'))closeModal()});
+fLunch.addEventListener('change',syncLunch);
+
+$('saveBtn').addEventListener('click',async function(){
+  var c=state.cfg||Object.assign({},DEFAULTS);
+  c.salary=Math.max(0,Number(fSalary.value)||0);c.raisePct=Math.max(0,Number(fRaise.value)||0);
+  c.workDays=Math.min(31,Math.max(1,Number(fDays.value)||21.75));
+  c.start=fStart.value||'09:00';c.end=fEnd.value||'18:00';
+  c.useLunch=fLunch.checked;c.lunchStart=fLs.value||'12:00';c.lunchEnd=fLe.value||'13:00';
+  c.otEnabled=fOT.checked;c.payday=Math.max(1,Math.min(31,Number(fPayday.value)||10));
+  c.theme=document.querySelector('.theme-btn.active')?.dataset.theme||c.theme||'default';
+  if(toMin(c.end)<=toMin(c.start)){alert('下班得晚于上班');return}
+
+  var p1=pwdInput.value.trim(),p2=pwdInput2.value.trim();
+  if(!state.pwd){if(p1.length<4){alert('首次要加密薪资，请设置密码 (≥4 位)');return}if(p1!==p2){alert('两次密码不一样');return}state.pwd=p1}
+  else if(p1.length>0){if(p1.length<4){alert('密码≥4位');return}if(p1!==p2){alert('两次不一样');return}state.pwd=p1}
+
+  try{await saveCfg(c,state.pwd);saveFUN();closeModal();showToast('💾','已保存','密码加密 · 配置已更新');render()}catch(e){alert('保存失败：'+e.message)}
+});
+$('resetBtn').addEventListener('click',function(){if(!confirm('⚠️ 确定清空？\n薪资/金币/成就/股票都会没掉'))return;clearAll();location.reload()});
+
+/* ========== 启动 ========== */
+function firstTimeBoot(){state.cfg=JSON.parse(JSON.stringify(DEFAULTS));state.fun=loadFUN();state.pwd=null;startApp();showToast('💡','👁️ 薪资默认隐藏','点 👁️ 偷看 · 齿轮里设密码')}
+async function unlockBoot(){var pwd=prompt('请输入密码解锁工资配置：');if(!pwd){showToast('❓','没密码就重置','齿轮底部有重置');return null}var ok=await loadCfg(pwd);if(ok){state.fun=loadFUN();return true}alert('密码不对');return null}
+
+function startApp(){
+  initBgParticles();
+
+  /* ========== 翻页切换 ========== */
+  document.querySelectorAll('.page-switch button').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('.page-switch button').forEach(function(b){b.classList.remove('active')});
+      btn.classList.add('active');
+      var target=btn.dataset.target;
+      document.querySelectorAll('.page').forEach(function(p){
+        p.classList.toggle('active',p.dataset.page===target);
+      });
+      // 切到 play page 时确保默认 tab 激活
+      if(target==='play'){
+        var firstTab=document.querySelector('.page.play .tab');
+        if(firstTab&&!document.querySelector('.page.play .tab.active'))firstTab.click();
+      }
+    });
+  });
+
+  /* ========== 立体驴拉磨（JS 逐帧驱动） ========== */
+  (function(){
+    var SVGNS='http://www.w3.org/2000/svg';
+    var scene=document.querySelector('.donkey-wrap svg');
+    if(!scene)return;
+    var layerBack=document.getElementById('layerBack');
+    var layerFront=document.getElementById('layerFront');
+    if(!layerBack||!layerFront)return;
+
+    function makeDonkey(){
+      var g=document.createElementNS(SVGNS,'g');
+      g.innerHTML=
+        '<ellipse cx="-2" cy="2" rx="36" ry="6" fill="rgba(0,0,0,.35)"/>'+
+        '<g class="dk-body">'+
+        '<g class="leg-c"><rect x="-22" y="-24" width="5" height="18" rx="2.5" fill="#8d7660" opacity=".8"/><rect x="-23.5" y="-7" width="8" height="7" rx="2" fill="#453723" opacity=".85"/></g>'+
+        '<g class="leg-d"><rect x="11" y="-24" width="5" height="18" rx="2.5" fill="#8d7660" opacity=".8"/><rect x="9.5" y="-7" width="8" height="7" rx="2" fill="#453723" opacity=".85"/></g>'+
+        '<g class="donkey-tail"><path d="M28 -50 Q38 -46 40 -37" stroke="#8d7660" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="40" cy="-36" r="2.8" fill="#6b5a48"/></g>'+
+        '<ellipse cx="0" cy="-41" rx="29" ry="17" fill="#b3987f"/>'+
+        '<ellipse cx="-5" cy="-35" rx="18" ry="10" fill="#d6bfa6"/>'+
+        '<path d="M-16 -56 L-12 -63 L-8 -55 L-4 -62 L0 -54 L4 -61 L8 -53 L12 -59 L15 -52" stroke="#6b5a48" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'+
+        '<path d="M-16 -52 Q-28 -66 -37 -68 L-32 -50 Q-24 -50 -16 -38 Z" fill="#b3987f"/>'+
+        '<g class="leg-a"><rect x="-15" y="-26" width="5.5" height="20" rx="2.5" fill="#9c8468"/><rect x="-17" y="-7" width="9" height="7" rx="2" fill="#453723"/></g>'+
+        '<g class="leg-b"><rect x="2" y="-26" width="5.5" height="20" rx="2.5" fill="#9c8468"/><rect x="0" y="-7" width="9" height="7" rx="2" fill="#453723"/></g>'+
+        '<g class="head">'+
+        '<rect x="-58" y="-66" width="20" height="14" rx="7" fill="#cfae8c"/>'+
+        '<circle cx="-37" cy="-64" r="12" fill="#b3987f"/>'+
+        '<rect x="-46" y="-88" width="5.5" height="18" rx="2.75" fill="#9c8468" transform="rotate(8 -43 -72)"/>'+
+        '<rect x="-39" y="-89" width="5.5" height="18" rx="2.75" fill="#9c8468" transform="rotate(-6 -36 -73)"/>'+
+        '<rect x="-45.2" y="-86" width="3.8" height="12" rx="1.9" fill="#6b5a48" opacity=".6" transform="rotate(8 -43 -72)"/>'+
+        '<rect x="-38.2" y="-87" width="3.8" height="12" rx="1.9" fill="#6b5a48" opacity=".6" transform="rotate(-6 -36 -73)"/>'+
+        '<circle cx="-40" cy="-66" r="2.9" fill="#fff"/>'+
+        '<circle class="donkey-eye" cx="-40.8" cy="-66" r="1.9" fill="#2b2117"/>'+
+        '<circle cx="-41.5" cy="-66.8" r="0.7" fill="#fff"/>'+
+        '<circle cx="-54" cy="-61" r="1.4" fill="#8a7256"/>'+
+        '<path d="M-55 -56 Q-52 -53.5 -48 -55.5" stroke="#8a7256" stroke-width="1.2" fill="none" stroke-linecap="round"/>'+
+        '<line x1="-36" y1="-75" x2="-66" y2="-66" stroke="#7a5030" stroke-width="2.5" stroke-linecap="round"/>'+
+        '<line x1="-66" y1="-66" x2="-66" y2="-62" stroke="rgba(255,255,255,.45)" stroke-width="1"/>'+
+        '<g class="carrot-hang">'+
+        '<path d="M0 0 C-4 -3 -7 -8 -5 -11 C-3 -8 -1 -5 0 -3" fill="#3fae4e"/>'+
+        '<path d="M0 0 C4 -4 7 -9 5 -12 C3 -8 1 -5 0 -3" fill="#55c85f"/>'+
+        '<path d="M-1 -1 L-2 -12 L3 -9 Z" fill="#2f9e44"/>'+
+        '<path d="M-4.5 0 C-6 6 -3 15 0 19 C3 15 6 6 4.5 0 Z" fill="#ff9d2e" stroke="#e0761c" stroke-width="1"/>'+
+        '<path d="M-3.2 4 Q0 5.5 3.2 4" stroke="#e0761c" stroke-width=".8" fill="none"/>'+
+        '<path d="M-2.2 9 Q0 10 2.2 9" stroke="#e0761c" stroke-width=".8" fill="none"/>'+
+        '</g></g></g>';
+      return g;
+    }
+    var donkeyG=makeDonkey();
+    var pole=document.createElementNS(SVGNS,'line');
+    pole.setAttribute('stroke','#8b5a2b');
+    pole.setAttribute('stroke-width','2.5');
+    pole.setAttribute('stroke-linecap','round');
+
+    var cx=200,cy=160,rx=120,ry=44,t=0,lastBehind=null,lap=0;
+    var moods=['💪 干劲十足','😩 第 N 圈了','🤔 萝卜是不是远了','😤 老板在看','🥱 想躺平','🙏 谁来救救驴'];
+    var moodIdx=0;
+
+    function frame(){
+      t+=0.006;
+      var x=cx-rx*Math.cos(t);
+      var y=cy-ry*Math.sin(t);
+      var depth=(y-(cy-ry))/(2*ry);
+      var s=0.62+0.38*depth;
+      var x2=cx-rx*Math.cos(t+0.02);
+      var dir=(x2-x)>0?-1:1;
+      donkeyG.setAttribute('transform','translate('+x+','+y+') scale('+(dir*s)+','+s+')');
+      var behind=(y<cy-6);
+      if(behind!==lastBehind){
+        var layer=behind?layerBack:layerFront;
+        layer.appendChild(donkeyG);
+        if(behind){layer.appendChild(pole);scene.appendChild(layerFront);}
+        else{layerFront.appendChild(pole);}
+        lastBehind=behind;
+      }
+      pole.setAttribute('x1',cx);pole.setAttribute('y1',124);
+      pole.setAttribute('x2',x-16*dir*s);pole.setAttribute('y2',y-52*s);
+      requestAnimationFrame(frame);
+    }
+    frame();
+
+    /* 每圈 21 秒计一次 + 更新心情 + +1 经验 */
+    setInterval(function(){
+      lap++;
+      var ln=document.getElementById('lapN');if(ln)ln.textContent=lap;
+      moodIdx=(moodIdx+1)%moods.length;
+      var dm=document.getElementById('donkeyMood');if(dm)dm.textContent=moods[moodIdx].replace('N',lap);
+      addExp(1);
+    },21000);
+
+    /* 每秒同步「已帮老板磨」金币数 */
+    setInterval(function(){
+      var dc=document.getElementById('donkeyCoin');
+      if(dc&&state.fun)dc.textContent=Math.floor(state.fun.totalEarned||0)+' 🪙';
+    },1000);
+  })();
+
+  /* ========== 摸鱼君互动按钮（第一页 home 版） ========== */
+  document.getElementById('homePetFeed').addEventListener('click',function(){petAct(12,22,'喂食',null,8)});
+  document.getElementById('homePetTouch').addEventListener('click',function(){
+    if(state.fun&&(Date.now()-(state.fun.petFeedAt||0))<60000){showToast('✋','摸太频繁了',Math.ceil((60000-(Date.now()-state.fun.petFeedAt))/1000)+' 秒后再摸');return}
+    petAct(0,6,'抚摸',null,3);
+  });
+  document.getElementById('homePetPlay').addEventListener('click',function(){petAct(30,38,'逗它玩',null,20)});
+  var fishEvents=[
+    {m:'偷到了 3 枚金币，藏在键盘缝里！',g:3,exp:5,hp:4},
+    {m:'摸鱼途中被老板逮个正着，罚款 5🪙',g:-5,exp:2},
+    {m:'偷喝了老板的挂耳咖啡，回血 +8',g:0,exp:8,hp:8},
+    {m:'发现同事的摸鱼小号，达成互不揭发同盟',g:2,exp:10},
+    {m:'摸到 SSR：带薪如厕 20 分钟无人过问',g:1,exp:15},
+    {m:'啥也没摸到，纯纯白摸，但很快乐',g:0,exp:3}
+  ];
+  document.getElementById('homePetFish').addEventListener('click',function(){
+    if(!petById(state.fun.petId)){showToast('🐾','还没有搭子','先领养一只再派去摸鱼');return}
+    var e=fishEvents[(Math.random()*fishEvents.length)|0];
+    var g=e.g>0?(' +'+e.g+' 🪙'):(e.g<0?(' '+e.g+' 🪙'):'');
+    showToast('🎣','派去摸鱼',e.m+g);
+    var msg='🎣 '+e.m;
+    if(e.g>0)state.fun.coins+=e.g;
+    if(e.g<0)loseCoins(-e.g);
+    if(e.hp){state.fun.petHp=Math.min(100,(state.fun.petHp||0)+e.hp);renderPet()}
+    saveFUN();addExp(e.exp);render();
+  });
+
+  $('dateText').textContent=(new Date()).toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'});
+  applyTheme(state.cfg.theme||'default');normalizePet(state.fun);renderPetLvUI();renderPet(0,false,true);
+  renderStock();updateStockChart();
+  render();renderWheelLabels();setMemMode(0);renderBank();renderShop();buildMoleGrid();scheduleMemos();renderPetDex();
+  updateWheelHud();
+  /* 每日固定支出：通勤+早餐，让金币有流失 */
+  var spendKey=todayKey();
+  if(state.fun.lastSpendDate!==spendKey){
+    state.fun.lastSpendDate=spendKey;
+    var spentDaily=loseCoins(20);
+    saveFUN();
+    if(spentDaily>0)setTimeout(function(){showToast('☕','今日通勤+早餐','-'+spentDaily+' 🪙 · 涨价了，赚钱不易，省着点花')},2200);
+  }
+  setInterval(render,250);
+  setInterval(function(){
+    var now=new Date(),segs=getSegments(state.cfg);
+    var ns=now.getHours()*3600+now.getMinutes()*60;
+    var inW=segs.some(function(p){return ns>=p[0]&&ns<=p[1]});
+    if(state.fun.petId){
+      if(state.fun.petHp<=0){petLeave()}
+      else{
+        if(inW)state.fun.petHp=Math.max(0,state.fun.petHp-0.07);else state.fun.petHp=Math.min(100,state.fun.petHp+0.1);
+        if(state.fun.petHp<=0)petLeave();
+      }
+      saveFUN();
+    }
+    var t=todayKey();if(state.fun.clickDailyDate&&state.fun.clickDailyDate!==t){state.fun.dailyClickUsed=0;saveFUN()}
+  },8000);
+  setTimeout(function(){showToast('🪙','空格=赚金币','F=专注模式 · 下方 Tab 有小游戏、股票、金库和商店')},1500);
+}
+
+/* ========== 悬浮窗（仅 Electron 桌面版） ========== */
+var floatMode=!!(window.brickFloat&&window.brickFloat.ok);
+var floatPinned=false,floatCollapseTimer=null,floatExpandTimer=null,floatDragging=false;
+function updateFloatHud(pct,coins){
+  if(!floatMode)return;
+  var l=$('floatLaunch');
+  if(l)l.style.setProperty('--p',Math.max(0,Math.min(100,pct||0)));
+  var c=$('flCoin');if(c)c.textContent=coins;
+}
+function floatExpandNow(){
+  if(!floatMode)return;
+  clearTimeout(floatCollapseTimer);
+  window.brickFloat.expand().then(function(ok){
+    if(ok)document.body.classList.remove('collapsed');
+  });
+}
+function floatCollapseLater(){
+  if(!floatMode||floatPinned)return;
+  clearTimeout(floatCollapseTimer);
+  floatCollapseTimer=setTimeout(function(){
+    if(floatPinned)return;
+    /* 先切到收起态 UI：图标锚定窗口左上角，缩窗时屏幕上位置不变 → 不会出现“先回原位再跳走”的两段位移 */
+    document.body.classList.add('collapsed');
+    window.brickFloat.collapse().then(function(ok){
+      if(!ok)document.body.classList.remove('collapsed');
+    });
+  },340);
+}
+function initFloat(){
+  if(!floatMode)return;
+  document.body.classList.add('brick-float','collapsed');
+  var launch=$('floatLaunch');
+  /* 悬停 220ms 才展开：给拖动留出操作窗口 */
+  launch.addEventListener('mouseenter',function(){
+    if(floatDragging)return;
+    clearTimeout(floatExpandTimer);
+    floatExpandTimer=setTimeout(floatExpandNow,220);
+  });
+  launch.addEventListener('mouseleave',function(){clearTimeout(floatExpandTimer)});
+  /* 按住图标拖动窗口 */
+  launch.addEventListener('mousedown',function(e){
+    if(e.button!==0)return;
+    clearTimeout(floatExpandTimer);clearTimeout(floatCollapseTimer);
+    if(!window.brickFloat.dragStart){return}
+    floatDragging=true;
+    document.body.classList.add('float-dragging');
+    window.brickFloat.dragStart().then(function(ok){if(!ok){floatDragging=false;document.body.classList.remove('float-dragging')}});
+    e.preventDefault();
+  });
+  function endDrag(){
+    if(!floatDragging)return;
+    floatDragging=false;
+    document.body.classList.remove('float-dragging');
+    if(window.brickFloat.dragEnd)window.brickFloat.dragEnd();
+  }
+  window.addEventListener('mouseup',endDrag);
+  window.addEventListener('blur',endDrag);
+  document.addEventListener('mouseout',function(e){
+    if(e.relatedTarget||e.toElement)return;
+    if(document.body.classList.contains('collapsed'))return;
+    floatCollapseLater();
+  });
+  document.addEventListener('mouseover',function(e){
+    if(!e.relatedTarget&&!e.fromElement)clearTimeout(floatCollapseTimer);
+  });
+  $('floatPin').addEventListener('click',function(){
+    floatPinned=!floatPinned;
+    this.classList.toggle('on',floatPinned);
+    this.textContent=floatPinned?'📌':'📍';
+    showToast('📌',floatPinned?'已固定展开':'恢复自动收起',floatPinned?'鼠标离开也不收起':'鼠标离开就收起');
+  });
+  $('floatExit').addEventListener('click',function(){window.brickFloat.quit()});
+}
+
+async function boot(){
+  initFloat();
+  if(!hasEncCfg()){firstTimeBoot();return}
+  var ok=await unlockBoot();
+  if(ok)startApp();else firstTimeBoot();
+}
+boot();
+
+})();
+
+</script>
+</body>
+</html>
